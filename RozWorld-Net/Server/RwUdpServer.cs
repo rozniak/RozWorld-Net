@@ -78,7 +78,7 @@ namespace Oddmatics.RozWorld.Net.Server
         {
             IPEndPoint senderEP = new IPEndPoint(0, 0);
             byte[] rxData = Client.EndReceive(result, ref senderEP);
-            Client.BeginReceive(new AsyncCallback(Received), EndPoint);
+            Client.BeginReceive(new AsyncCallback(Received), null);
 
             int currentIndex = 0;
             ushort id = ByteParse.NextUShort(rxData, ref currentIndex);
@@ -102,11 +102,11 @@ namespace Oddmatics.RozWorld.Net.Server
         /// Sends an IPacket to the specified Socket.
         /// </summary>
         /// <param name="packet">The IPacket to send.</param>
-        /// <param name="destination">The destination Socket.</param>
-        public void Send(IPacket packet, Socket destination)
+        /// <param name="destination">The destination IPEndPoint.</param>
+        public void Send(IPacket packet, IPEndPoint destination)
         {
             byte[] txData = packet.GetBytes();
-            Client.BeginSend(txData, txData.Length, new AsyncCallback(Sent), destination);
+            Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
         }
 
         /// <summary>
@@ -115,8 +115,6 @@ namespace Oddmatics.RozWorld.Net.Server
         private void Sent(IAsyncResult result)
         {
             Client.EndSend(result);
-
-            // TODO: finish coding and testing this
         }
     }
 }

@@ -77,7 +77,7 @@ namespace Oddmatics.RozWorld.Net.Client
             if (!Active)
             {
                 Active = true;
-                Client.BeginReceive(new AsyncCallback(Received), EndPoint);
+                Client.BeginReceive(new AsyncCallback(Received), null);
             }
             else
                 throw new InvalidOperationException("RwUdpServer.Begin: Already started.");
@@ -88,8 +88,8 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         private void Received(IAsyncResult result)
         {
-            IList<byte> rxData = new List<byte>(Client.EndReceive(result, ref EndPoint)).AsReadOnly();
-            Client.BeginReceive(new AsyncCallback(Received), EndPoint);
+            byte[] rxData = Client.EndReceive(result, ref EndPoint);
+            Client.BeginReceive(new AsyncCallback(Received), null);
 
             int currentIndex = 0;
             ushort id = ByteParse.NextUShort(rxData, ref currentIndex);
@@ -111,9 +111,7 @@ namespace Oddmatics.RozWorld.Net.Client
         public void Send(IPacket packet, IPEndPoint destination)
         {
             byte[] txData = packet.GetBytes();
-            Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), destination);
-
-            // TODO: finish coding and testing this
+            Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
         }
 
         /// <summary>
