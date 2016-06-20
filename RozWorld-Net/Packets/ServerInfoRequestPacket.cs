@@ -11,7 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
+using System.Net;
 using System.Text;
 using Oddmatics.Util.IO;
 
@@ -62,15 +62,15 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the sender's Socket of this ServerInfoRequestPacket.
         /// </summary>
-        public Socket SenderSocket { get; private set; }
+        public IPEndPoint SenderEndPoint { get; private set; }
 
 
         /// <summary>
         /// Initialises a new instance of the ServerInfoRequestPacket class using network data.
         /// </summary>
         /// <param name="data">The network data describing this ServerInfoRequestPacket.</param>
-        /// <param name="senderSocket">The Socket of the sender.</param>
-        public ServerInfoRequestPacket(byte[] data, Socket senderSocket)
+        /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
+        public ServerInfoRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 2; // Skip first two bytes for ID
             ClientImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1);
@@ -81,7 +81,7 @@ namespace Oddmatics.RozWorld.Net.Packets
                 ServerImplementation == String.Empty)
                 throw new ArgumentException("ServerInfoRequestPacket.New: Invalid data supplied.");
 
-            SenderSocket = senderSocket;
+            SenderEndPoint = senderEndPoint;
         }
 
         /// <summary>

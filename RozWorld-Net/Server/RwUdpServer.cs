@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Oddmatics.RozWorld.Net.Packets;
+using Oddmatics.RozWorld.Net.Server.Event;
 using Oddmatics.Util.IO;
 
 namespace Oddmatics.RozWorld.Net.Server
@@ -40,6 +41,12 @@ namespace Oddmatics.RozWorld.Net.Server
 
 
         /// <summary>
+        /// Occurs when a server information request has been received.
+        /// </summary>
+        public event InfoRequestReceivedHandler InfoRequestReceived;
+
+
+        /// <summary>
         /// Initialises a new instance of the RwUdpServer class with a specified port number.
         /// </summary>
         /// <param name="port">The port number to use.</param>
@@ -57,6 +64,7 @@ namespace Oddmatics.RozWorld.Net.Server
         {
             if (!Active)
             {
+                Active = true;
                 Client.BeginReceive(new AsyncCallback(Received), EndPoint);
             }
             else
@@ -68,7 +76,8 @@ namespace Oddmatics.RozWorld.Net.Server
         /// </summary>
         private void Received(IAsyncResult result)
         {
-            IList<byte> rxData = new List<byte>(Client.EndReceive(result, ref EndPoint)).AsReadOnly();
+            IPEndPoint senderEP = new IPEndPoint(0, 0);
+            byte[] rxData = Client.EndReceive(result, ref senderEP);
             Client.BeginReceive(new AsyncCallback(Received), EndPoint);
 
             int currentIndex = 0;
@@ -76,6 +85,12 @@ namespace Oddmatics.RozWorld.Net.Server
 
             switch (id)
             {
+                    // ServerInfoRequestPacket
+                case 1:
+                    if (InfoRequestReceived != null)
+                        InfoRequestReceived(this, new ServerInfoRequestPacket(rxData, senderEP));
+                    break;
+
                 case 0:
                 default:
                     // Bad packet
@@ -92,8 +107,6 @@ namespace Oddmatics.RozWorld.Net.Server
         {
             byte[] txData = packet.GetBytes();
             Client.BeginSend(txData, txData.Length, new AsyncCallback(Sent), destination);
-
-            // TODO: finish coding and testing this
         }
 
         /// <summary>

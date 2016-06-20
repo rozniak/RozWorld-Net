@@ -9,7 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
-using System.Net.Sockets;
+using System.Net;
 
 namespace Oddmatics.RozWorld.Net.Packets
 {
@@ -44,9 +44,9 @@ namespace Oddmatics.RozWorld.Net.Packets
         public SenderIs Sender { get { return SenderIs.Server; } }
 
         /// <summary>
-        /// Gets the sender's Socket of this ServerInfoResponsePacket.
+        /// Gets the sender's IPEndPoint of this ServerInfoResponsePacket.
         /// </summary>
-        public Socket SenderSocket { get; private set; }
+        public IPEndPoint SenderEndPoint { get; private set; }
 
         /// <summary>
         /// Gets the server's name to show in the browser.
@@ -63,8 +63,8 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Initialises a new instance of the ServerInfoResponsePacket class using network data.
         /// </summary>
         /// <param name="data">The network data describing this </param>
-        /// <param name="senderSocket">The Socket of the sender.</param>
-        public ServerInfoResponsePacket(byte[] data, Socket senderSocket)
+        /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
+        public ServerInfoResponsePacket(byte[] data, IPEndPoint senderEndPoint)
         {
             // TODO: code this
         }

@@ -9,7 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
-using System.Net.Sockets;
+using System.Net;
 
 namespace Oddmatics.RozWorld.Net.Packets
 {
@@ -29,9 +29,9 @@ namespace Oddmatics.RozWorld.Net.Packets
         SenderIs Sender { get; }
 
         /// <summary>
-        /// Gets the sender's Socket (if this packet was sent by a client).
+        /// Gets the sender's IPEndPoint.
         /// </summary>
-        Socket SenderSocket { get; }
+        IPEndPoint SenderEndPoint { get; }
 
 
         /// <summary>
