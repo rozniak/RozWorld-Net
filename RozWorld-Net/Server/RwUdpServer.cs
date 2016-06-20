@@ -1,7 +1,7 @@
 ﻿/**
  * Oddmatics.RozWorld.Net.Server.RwUdpServer -- RozWorld UDP Server Subsystem
  *
- * This source-code is part of the server library for the RozWorld project by rozza of Oddmatics:
+ * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
  * <<http://roz.world>>
  * <<http://github.com/rozniak/RozWorld-Net>>
@@ -24,6 +24,12 @@ namespace Oddmatics.RozWorld.Net.Server
     /// </summary>
     public class RwUdpServer
     {
+        /// <summary>
+        /// The default port for RozWorld servers.
+        /// </summary>
+        public const int ROZWORLD_DEFAULT_PORT = 41715;
+
+
         /// <summary>
         /// Gets whether this RwUdpServer is currently active.
         /// </summary>

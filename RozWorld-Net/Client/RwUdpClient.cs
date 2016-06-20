@@ -1,7 +1,7 @@
 ﻿/**
  * Oddmatics.RozWorld.Net.Client.RwUdpClient -- RozWorld UDP Client Subsystem
  *
- * This source-code is part of the server library for the RozWorld project by rozza of Oddmatics:
+ * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
  * <<http://roz.world>>
  * <<http://github.com/rozniak/RozWorld-Net>>
@@ -9,12 +9,13 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using Oddmatics.RozWorld.Net.Client.Event;
+using Oddmatics.RozWorld.Net.Packets;
+using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using Oddmatics.RozWorld.Net.Packets;
-using Oddmatics.Util.IO;
 
 namespace Oddmatics.RozWorld.Net.Client
 {
@@ -42,6 +43,12 @@ namespace Oddmatics.RozWorld.Net.Client
         /// The IPEndPoint of the server being listened to.
         /// </summary>
         private IPEndPoint EndPoint;
+
+
+        /// <summary>
+        /// Occurs when a server information response has been received.
+        /// </summary>
+        public event InfoResponseReceivedHandler InfoResponseReceived;
 
 
         /// <summary>
@@ -88,7 +95,8 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         private void Received(IAsyncResult result)
         {
-            byte[] rxData = Client.EndReceive(result, ref EndPoint);
+            IPEndPoint senderEP = new IPEndPoint(0, 0);
+            byte[] rxData = Client.EndReceive(result, ref senderEP);
             Client.BeginReceive(new AsyncCallback(Received), null);
 
             int currentIndex = 0;
@@ -96,6 +104,12 @@ namespace Oddmatics.RozWorld.Net.Client
 
             switch (id)
             {
+                    // ServerInfoResponsePacket
+                case 1:
+                    if (InfoResponseReceived != null)
+                        InfoResponseReceived(this, new ServerInfoResponsePacket(rxData, senderEP));
+                    break;
+
                 case 0:
                 default:
                     // Bad packet

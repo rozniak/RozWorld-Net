@@ -1,7 +1,7 @@
 ﻿/**
  * Oddmatics.RozWorld.Net.Packets.SenderIs -- RozWorld Client-Server Packet Sender Enumeration
  *
- * This source-code is part of the server library for the RozWorld project by rozza of Oddmatics:
+ * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
  * <<http://roz.world>>
  * <<http://github.com/rozniak/RozWorld-Net>>

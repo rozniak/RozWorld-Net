@@ -1,7 +1,7 @@
 ﻿/**
- * Oddmatics.RozWorld.Net.Packets.ServerInfoResponsePacket -- RozWorld Server Information Response Packet
+ * Oddmatics.RozWorld.Net.Server.Event.InfoRequestReceivedHandler -- RozWorld Server Information Request Packet Receieved Delegate
  *
- * This source-code is part of the server library for the RozWorld project by rozza of Oddmatics:
+ * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
  * <<http://roz.world>>
  * <<http://github.com/rozniak/RozWorld-Net>>
