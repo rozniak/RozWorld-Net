@@ -48,9 +48,11 @@
     <Compile Include="Client\Event\InfoResponseReceivedHandler.cs" />
     <Compile Include="Client\RwUdpClient.cs" />
     <Compile Include="Packets\IPacket.cs" />
+    <Compile Include="Packets\LogInRequestPacket.cs" />
     <Compile Include="Packets\SenderIs.cs" />
     <Compile Include="Packets\ServerInfoRequestPacket.cs" />
     <Compile Include="Packets\ServerInfoResponsePacket.cs" />
+    <Compile Include="Packets\SignUpRequestPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\Event\InfoRequestReceivedHandler.cs" />
     <Compile Include="Server\RwUdpServer.cs" />
