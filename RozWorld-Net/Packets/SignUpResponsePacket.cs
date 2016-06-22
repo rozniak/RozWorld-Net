@@ -29,7 +29,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this SignUpResponsePacket.
         /// </summary>
-        public ushort ID { get { return 2; } }
+        public ushort ID { get { return PacketType.SIGN_UP_ID; } }
 
         /// <summary>
         /// Gets the sender of this SignUpResponsePacket.

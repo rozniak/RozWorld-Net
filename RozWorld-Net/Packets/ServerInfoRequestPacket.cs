@@ -47,7 +47,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this ServerInfoRequestPacket.
         /// </summary>
-        public ushort ID { get { return 1; } }
+        public ushort ID { get { return PacketType.SERVER_INFO_ID; } }
 
         /// <summary>
         /// Gets the name of the server implementation the client is looking for.

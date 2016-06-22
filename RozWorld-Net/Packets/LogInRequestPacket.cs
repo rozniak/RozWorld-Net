@@ -25,7 +25,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this LogInRequestPacket.
         /// </summary>
-        public ushort ID { get { return 3; } }
+        public ushort ID { get { return PacketType.LOG_IN_ID; } }
 
         /// <summary>
         /// Gets the hashed password of the sender of this LogInRequestPacket.

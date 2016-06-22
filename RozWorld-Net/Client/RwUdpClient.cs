@@ -11,11 +11,13 @@
 
 using Oddmatics.RozWorld.Net.Client.Event;
 using Oddmatics.RozWorld.Net.Packets;
+using Oddmatics.RozWorld.Net.Server;
 using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Timers;
 
 namespace Oddmatics.RozWorld.Net.Client
 {
@@ -24,6 +26,13 @@ namespace Oddmatics.RozWorld.Net.Client
     /// </summary>
     public class RwUdpClient
     {
+        /// <summary>
+        /// The default broadcast IPEndPoint destination to RozWorld servers.
+        /// </summary>
+        public static readonly IPEndPoint SERVER_BROADCAST_ENDPOINT = new IPEndPoint(IPAddress.Broadcast,
+                                                                            RwUdpServer.ROZWORLD_DEFAULT_PORT);
+
+
         /// <summary>
         /// Gets whether this RwUdpClient is currently active.
         /// </summary>
@@ -35,14 +44,19 @@ namespace Oddmatics.RozWorld.Net.Client
         private UdpClient Client;
 
         /// <summary>
-        /// Gets whether this RwUdpClient is connected to a server.
-        /// </summary>
-        public bool Connected { get { return EndPoint != null; } }
-
-        /// <summary>
-        /// The IPEndPoint of the server being listened to.
+        /// The IPEndPoint of the server being communicated to currently.
         /// </summary>
         private IPEndPoint EndPoint;
+
+        /// <summary>
+        /// The current ClientState of this RwUdpClient.
+        /// </summary>
+        private ClientState State;
+
+        /// <summary>
+        /// The Timer that advances timeout counts on important packets and time since last server response.
+        /// </summary>
+        public Timer TimeoutTimer { get; private set; }
 
 
         /// <summary>
@@ -54,9 +68,10 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <summary>
         /// Initialises a new instance of the RwUdpClient class with a specified port number.
         /// </summary>
-        /// <param name="port">The port number to use.</param>
         public RwUdpClient()
         {
+            TimeoutTimer = new Timer();
+            TimeoutTimer.Enabled = true;
             Random random = new Random();
             bool successfulPort = false;
 
@@ -87,7 +102,23 @@ namespace Oddmatics.RozWorld.Net.Client
                 Client.BeginReceive(new AsyncCallback(Received), null);
             }
             else
-                throw new InvalidOperationException("RwUdpServer.Begin: Already started.");
+                throw new InvalidOperationException("RwUdpClient.Begin: Already started.");
+        }
+
+        /// <summary>
+        /// Begins broadcasting 
+        /// </summary>
+        /// <param name="clientImplementation">The name of the client's implementation.</param>
+        /// <param name="versionRaw">The raw version number of the client.</param>
+        /// <param name="serverImplementation">The server implementation to look for (use * for a wildcard).</param>
+        private void BroadcastServerScan(string clientImplementation, ushort versionRaw, string serverImplementation)
+        {
+            if (State == ClientState.Idle)
+            {
+
+            }
+            else
+                throw new InvalidOperationException("RwUdpClient.BroadcastServerScan");
         }
 
         /// <summary>
@@ -105,9 +136,17 @@ namespace Oddmatics.RozWorld.Net.Client
             switch (id)
             {
                     // ServerInfoResponsePacket
-                case 1:
-                    if (InfoResponseReceived != null)
+                case PacketType.SERVER_INFO_ID:
+                    if (InfoResponseReceived != null && State == ClientState.Broadcasting)
                         InfoResponseReceived(this, new ServerInfoResponsePacket(rxData, senderEP));
+                    break;
+
+                case PacketType.SIGN_UP_ID:
+                    
+                    break;
+
+                case PacketType.LOG_IN_ID:
+
                     break;
 
                 case 0:
@@ -122,7 +161,7 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         /// <param name="packet">The IPacket to send.</param>
         /// <param name="destination">The destination Socket.</param>
-        public void Send(IPacket packet, IPEndPoint destination)
+        private void Send(IPacket packet, IPEndPoint destination)
         {
             byte[] txData = packet.GetBytes();
             Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);

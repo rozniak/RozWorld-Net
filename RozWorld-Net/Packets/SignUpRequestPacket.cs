@@ -24,7 +24,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this SignUpRequestPacket.
         /// </summary>
-        public ushort ID { get { return 2; } }
+        public ushort ID { get { return PacketType.SIGN_UP_ID; } }
 
         /// <summary>
         /// Gets the hashed password of the sender of this SignUpRequestPacket.
