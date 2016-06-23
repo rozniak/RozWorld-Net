@@ -28,6 +28,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public ushort ID { get { return PacketType.LOG_IN_ID; } }
 
         /// <summary>
+        /// Gets the maximum send attempts for this LogInRequestPacket.
+        /// </summary>
+        public byte MaxSendAttempts { get { return PacketTimeout.RESEND_ATTEMPTS_AUTH; } }
+
+        /// <summary>
         /// Gets the hashed password of the sender of this LogInRequestPacket.
         /// </summary>
         public byte[] PasswordHash { get; private set; }
@@ -41,6 +46,16 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the sender's IPEndPoint of this LogInRequestPacket.
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
+
+        /// <summary>
+        /// Gets whether the sender has skin downloads enabled.
+        /// </summary>
+        public bool SkinDownloads { get; private set; }
+
+        /// <summary>
+        /// Gets the time in milliseconds before a resend attempt is made.
+        /// </summary>
+        public ushort TimeUntilResend { get { return PacketTimeout.RESEND_TIMEOUT_AUTH; } }
 
         /// <summary>
         /// Gets the username of the sender of this LogInRequestPacket.
@@ -66,6 +81,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         public LogInRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 2; // Skip first two bytes for ID
+            SkinDownloads = ByteParse.NextBool(data, ref currentIndex);
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1);
             UtcHashTime = ByteParse.NextLong(data, ref currentIndex);
             data.CopyTo(PasswordHash, currentIndex);
@@ -76,10 +92,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Initialises a new instance of the LogInRequestPacket class with specified properties.
         /// </summary>
+        /// <param name="skinDownloads">Whether skin downloads are accepted.</param>
         /// <param name="username">The username to log in as.</param>
         /// <param name="utcHashTime">The time in ticks of the hashed password.</param>
         /// <param name="passwordHash">The SHA-256 password hash to check against.</param>
-        public LogInRequestPacket(string username, long utcHashTime, byte[] passwordHash)
+        public LogInRequestPacket(bool skinDownloads, string username, long utcHashTime, byte[] passwordHash)
         {
             if (username.Length == 0 || username.Length > 127)
                 throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
@@ -87,6 +104,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             if (passwordHash.Length != 32)
                 throw new ArgumentException("LogInRequestPacket.New: Password hash incorrect length - use SHA256.");
 
+            SkinDownloads = skinDownloads;
             PasswordHash = passwordHash;
             Username = username;
             UtcHashTime = utcHashTime;

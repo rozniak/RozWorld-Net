@@ -49,6 +49,11 @@ namespace Oddmatics.RozWorld.Net.Client
         private IPEndPoint EndPoint;
 
         /// <summary>
+        /// The time in milliseconds since the last packet was receieved from the connected server.
+        /// </summary>
+        private ushort SinceServerPacket;
+
+        /// <summary>
         /// The current ClientState of this RwUdpClient.
         /// </summary>
         private ClientState State;
@@ -70,8 +75,9 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         public RwUdpClient()
         {
-            TimeoutTimer = new Timer();
+            TimeoutTimer = new Timer(10);
             TimeoutTimer.Enabled = true;
+            TimeoutTimer.Start();
             Random random = new Random();
             bool successfulPort = false;
 
@@ -157,11 +163,11 @@ namespace Oddmatics.RozWorld.Net.Client
         }
 
         /// <summary>
-        /// Sends an IPacket to the specified Socket.
+        /// Sends an IPacket to the specified IPEndPoint.
         /// </summary>
         /// <param name="packet">The IPacket to send.</param>
-        /// <param name="destination">The destination Socket.</param>
-        private void Send(IPacket packet, IPEndPoint destination)
+        /// <param name="destination">The destination IPEndPoint.</param>
+        public void Send(IPacket packet, IPEndPoint destination)
         {
             byte[] txData = packet.GetBytes();
             Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);

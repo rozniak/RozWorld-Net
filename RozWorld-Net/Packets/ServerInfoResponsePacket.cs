@@ -37,6 +37,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public short MaxPlayers { get; private set; }
 
         /// <summary>
+        /// Gets the maximum send attempts for this ServerInfoResponsePacket.
+        /// </summary>
+        public byte MaxSendAttempts { get { return 0; } }
+
+        /// <summary>
         /// Gets the amount of currently online players on the server.
         /// </summary>
         public short OnlinePlayers { get; private set; }
@@ -60,6 +65,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the name of the server's implementation.
         /// </summary>
         public string ServerImplementation { get; private set; }
+
+        /// <summary>
+        /// Gets the time in milliseconds before a resend attempt is made.
+        /// </summary>
+        public ushort TimeUntilResend { get { return 0; } }
 
 
         /// <summary>

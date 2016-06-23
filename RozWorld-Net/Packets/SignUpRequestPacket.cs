@@ -27,6 +27,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public ushort ID { get { return PacketType.SIGN_UP_ID; } }
 
         /// <summary>
+        /// Gets the maximum send attempts for this SignUpRequestPacket.
+        /// </summary>
+        public byte MaxSendAttempts { get { return PacketTimeout.RESEND_ATTEMPTS_AUTH; } }
+
+        /// <summary>
         /// Gets the hashed password of the sender of this SignUpRequestPacket.
         /// </summary>
         public byte[] PasswordHash { get; private set; }
@@ -40,6 +45,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the sender's IPEndPoint of this SignUpRequestPacket.
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
+
+        /// <summary>
+        /// Gets the time in milliseconds before a resend attempt is made.
+        /// </summary>
+        public ushort TimeUntilResend { get { return PacketTimeout.RESEND_TIMEOUT_AUTH; } }
 
         /// <summary>
         /// Gets the username of the sender of this SignUpRequestPacket.

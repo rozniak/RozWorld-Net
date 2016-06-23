@@ -17,7 +17,7 @@ using System.Net;
 namespace Oddmatics.RozWorld.Net.Packets
 {
     /// <summary>
-    /// [SERVER --> CLIENT] Represents a sign up request packet.
+    /// [SERVER --> CLIENT] Represents a sign up response packet.
     /// </summary>
     public class SignUpResponsePacket : IPacket
     {
@@ -30,6 +30,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the ID of this SignUpResponsePacket.
         /// </summary>
         public ushort ID { get { return PacketType.SIGN_UP_ID; } }
+
+        /// <summary>
+        /// Gets the maximum send attempts for this SignUpResponsePacket.
+        /// </summary>
+        public byte MaxSendAttempts { get { return 0; } }
 
         /// <summary>
         /// Gets the sender of this SignUpResponsePacket.
@@ -45,6 +50,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets whether the sign up attempt was a success.
         /// </summary>
         public bool Success { get; private set; }
+
+        /// <summary>
+        /// Gets the time in milliseconds before a resend attempt is made.
+        /// </summary>
+        public ushort TimeUntilResend { get { return 0; } }
 
         /// <summary>
         /// Gets the username that was registered on the server.

@@ -9,6 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using System;
 using System.Net;
 
 namespace Oddmatics.RozWorld.Net.Packets
@@ -24,6 +25,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         ushort ID { get; }
 
         /// <summary>
+        /// Gets the maximum send attempts for this IPacket.
+        /// </summary>
+        byte MaxSendAttempts { get; }
+
+        /// <summary>
         /// Gets the sender of this IPacket.
         /// </summary>
         SenderIs Sender { get; }
@@ -32,6 +38,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the sender's IPEndPoint.
         /// </summary>
         IPEndPoint SenderEndPoint { get; }
+
+        /// <summary>
+        /// Gets the time in milliseconds before a resend attempt is made.
+        /// </summary>
+        ushort TimeUntilResend { get; }
 
 
         /// <summary>

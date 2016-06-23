@@ -47,10 +47,11 @@
   <ItemGroup>
     <Compile Include="Client\ClientState.cs" />
     <Compile Include="Client\Event\InfoResponseEventHandler.cs" />
-    <Compile Include="Client\Event\TimeoutEventHandler.cs" />
+    <Compile Include="Client\PacketWatcher.cs" />
     <Compile Include="Client\RwUdpClient.cs" />
     <Compile Include="Packets\IPacket.cs" />
     <Compile Include="Packets\LogInRequestPacket.cs" />
+    <Compile Include="Packets\PacketTimeout.cs" />
     <Compile Include="Packets\PacketType.cs" />
     <Compile Include="Packets\SenderIs.cs" />
     <Compile Include="Packets\ServerInfoRequestPacket.cs" />

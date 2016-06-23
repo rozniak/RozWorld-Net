@@ -50,6 +50,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public ushort ID { get { return PacketType.SERVER_INFO_ID; } }
 
         /// <summary>
+        /// Gets the maximum send attempts for this ServerInfoRequestPacket.
+        /// </summary>
+        public byte MaxSendAttempts { get { return 0; } }
+
+        /// <summary>
         /// Gets the name of the server implementation the client is looking for.
         /// </summary>
         public string ServerImplementation { get; private set; }
@@ -63,6 +68,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the sender's IPEndPoint of this ServerInfoRequestPacket.
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
+
+        /// <summary>
+        /// Gets the time in milliseconds before a resend attempt is made.
+        /// </summary>
+        public ushort TimeUntilResend { get { return 0; } }
 
 
         /// <summary>
