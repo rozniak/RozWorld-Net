@@ -1,4 +1,15 @@
-﻿using Oddmatics.RozWorld.Net.Packets;
+﻿/**
+ * Oddmatics.RozWorld.Net.Client.PacketWatcher -- RozWorld Network Packet Watcher
+ *
+ * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
+ * <<http://www.oddmatics.uk>>
+ * <<http://roz.world>>
+ * <<http://github.com/rozniak/RozWorld-Net>>
+ *
+ * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
+ */
+
+using Oddmatics.RozWorld.Net.Packets;
 using System;
 using System.Net;
 using System.Timers;
@@ -18,12 +29,12 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <summary>
         /// Destination IPEndPoint to receive from.
         /// </summary>
-        private IPEndPoint EndPoint;
+        public IPEndPoint EndPoint { get; private set; }
 
         /// <summary>
         /// The IPacket for resending.
         /// </summary>
-        private IPacket Packet;
+        public IPacket Packet { get; private set; }
 
         /// <summary>
         /// The parent RwUdpClient instance.
@@ -35,23 +46,64 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         private ushort SinceLastSend;
 
+        /// <summary>
+        /// Whether this PacketWatcher has started or not.
+        /// </summary>
+        private bool Started;
 
+
+        /// <summary>
+        /// Occurs when the maximum send attempts have been hit for this PacketWatcher.
+        /// </summary>
         public event EventHandler Timeout;
 
 
         /// <summary>
-        /// 
+        /// Initialises a new instance of the PacketWatcher class with packet details.
         /// </summary>
-        /// <param name="packet"></param>
-        /// <param name="destinationEP"></param>
-        /// <param name="parent"></param>
+        /// <param name="packet">The IPacket to watch.</param>
+        /// <param name="destinationEP">The destination IPEndPoint of the remote host.</param>
+        /// <param name="parent">The parent RwUdpClient instance.</param>
         public PacketWatcher(IPacket packet, IPEndPoint destinationEP, RwUdpClient parent)
         {
+            if (packet == null || destinationEP == null || parent == null)
+                throw new ArgumentException("PacketWatcher.New: Cannot initialise with null arguments.");
+
             Attempts = 0;
             EndPoint = destinationEP;
             Packet = packet;
             Parent = parent;
-            Parent.TimeoutTimer.Elapsed += new ElapsedEventHandler(TimeoutTimer_Elapsed);
+        }
+
+
+        /// <summary>
+        /// Resets this PacketWatcher.
+        /// </summary>
+        /// <param name="newPacket">If the IPacket in question has been updated, pass the new one here.</param>
+        public void Reset(IPacket newPacket = null)
+        {
+            if (Started)
+            {
+                if (newPacket != null)
+                    Packet = newPacket;
+
+                Attempts = 0;
+                SinceLastSend = 0;
+                Parent.Send(Packet, EndPoint);
+            }
+        }
+
+        /// <summary>
+        /// Starts this PacketWatcher.
+        /// </summary>
+        public void Start()
+        {
+            if (!Started)
+            {
+                Parent.Send(Packet, EndPoint);
+                Parent.TimeoutTimer.Elapsed += new ElapsedEventHandler(TimeoutTimer_Elapsed);
+                Started = true;
+            }
         }
 
 
@@ -60,8 +112,6 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         private void TimeoutTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            SinceLastSend += (ushort)((Timer)sender).Interval;
-
             if (SinceLastSend > Packet.TimeUntilResend)
             {
                 if (++Attempts > Packet.MaxSendAttempts)
@@ -70,16 +120,15 @@ namespace Oddmatics.RozWorld.Net.Client
                         Timeout(this, EventArgs.Empty);
 
                     Parent.TimeoutTimer.Elapsed -= TimeoutTimer_Elapsed;
+                    Started = false;
                 }
+                else
+                    Parent.Send(Packet, EndPoint);
 
                 SinceLastSend = 0;
             }
-        }
-
-
-        public void Reset(IPacket newPacket = null)
-        {
-            
+            else
+                SinceLastSend += (ushort)((Timer)sender).Interval;
         }
     }
 }

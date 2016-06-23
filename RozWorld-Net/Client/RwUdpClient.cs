@@ -63,6 +63,11 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         public Timer TimeoutTimer { get; private set; }
 
+        /// <summary>
+        /// The currently watched packets as a Dictionary&lt;string, PacketWatcher&gt; collection.
+        /// </summary>
+        private Dictionary<string, PacketWatcher> WatchedPackets;
+
 
         /// <summary>
         /// Occurs when a server information response has been received.
@@ -71,13 +76,14 @@ namespace Oddmatics.RozWorld.Net.Client
 
 
         /// <summary>
-        /// Initialises a new instance of the RwUdpClient class with a specified port number.
+        /// Initialises a new instance of the RwUdpClient class.
         /// </summary>
         public RwUdpClient()
         {
             TimeoutTimer = new Timer(10);
             TimeoutTimer.Enabled = true;
             TimeoutTimer.Start();
+            WatchedPackets = new Dictionary<string, PacketWatcher>();
             Random random = new Random();
             bool successfulPort = false;
 
@@ -112,16 +118,28 @@ namespace Oddmatics.RozWorld.Net.Client
         }
 
         /// <summary>
-        /// Begins broadcasting 
+        /// Begins broadcasting server information request packets.
         /// </summary>
         /// <param name="clientImplementation">The name of the client's implementation.</param>
         /// <param name="versionRaw">The raw version number of the client.</param>
         /// <param name="serverImplementation">The server implementation to look for (use * for a wildcard).</param>
-        private void BroadcastServerScan(string clientImplementation, ushort versionRaw, string serverImplementation)
+        public void BroadcastServerScan(string clientImplementation, ushort versionRaw, string serverImplementation)
         {
-            if (State == ClientState.Idle)
+            if (State == ClientState.Idle || State == ClientState.Broadcasting)
             {
+                var packet = new ServerInfoRequestPacket(clientImplementation,
+                    versionRaw, serverImplementation);
 
+                if (State == ClientState.Broadcasting)
+                    WatchedPackets["ServerInfoRequest"].Reset(packet);
+                else
+                {
+                    State = ClientState.Broadcasting;
+                    var packetWatcher = new PacketWatcher(packet, SERVER_BROADCAST_ENDPOINT, this);
+                    packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_ServerScan);
+                    WatchedPackets.Add("ServerInfoRequest", packetWatcher);
+                    packetWatcher.Start();
+                }
             }
             else
                 throw new InvalidOperationException("RwUdpClient.BroadcastServerScan");
@@ -179,6 +197,17 @@ namespace Oddmatics.RozWorld.Net.Client
         private void Sent(IAsyncResult result)
         {
             Client.EndSend(result);
+        }
+
+
+        /// <summary>
+        /// [WatchedPackets[ServerInfoRequest].Timeout] Server scan packet timeout.
+        /// </summary>
+        private void packetWatcher_Timeout_ServerScan(object sender, EventArgs e)
+        {
+            State = ClientState.Idle;
+            WatchedPackets["ServerInfoRequest"].Timeout -= packetWatcher_Timeout_ServerScan;
+            WatchedPackets.Remove("ServerInfoRequest");
         }
     }
 }

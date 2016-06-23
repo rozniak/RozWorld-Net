@@ -26,6 +26,7 @@ namespace Oddmatics.RozWorld.Net.Packets
 
         /// <summary>
         /// Gets the maximum send attempts for this IPacket.
+        /// For infinite send attempts (until the total server timeout), set to 255.
         /// </summary>
         byte MaxSendAttempts { get; }
 

@@ -72,7 +72,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the time in milliseconds before a resend attempt is made.
         /// </summary>
-        public ushort TimeUntilResend { get { return 0; } }
+        public ushort TimeUntilResend { get { return 3000; } } // Set to 3 seconds so the Timeout event will set off
 
 
         /// <summary>
