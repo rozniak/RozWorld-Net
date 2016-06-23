@@ -62,15 +62,15 @@ namespace Oddmatics.RozWorld.Net.Client
         /// Initialises a new instance of the PacketWatcher class with packet details.
         /// </summary>
         /// <param name="packet">The IPacket to watch.</param>
-        /// <param name="destinationEP">The destination IPEndPoint of the remote host.</param>
+        /// <param name="destination">The destination IPEndPoint of the remote host.</param>
         /// <param name="parent">The parent RwUdpClient instance.</param>
-        public PacketWatcher(IPacket packet, IPEndPoint destinationEP, RwUdpClient parent)
+        public PacketWatcher(IPacket packet, IPEndPoint destination, RwUdpClient parent)
         {
-            if (packet == null || destinationEP == null || parent == null)
+            if (packet == null || destination == null || parent == null)
                 throw new ArgumentException("PacketWatcher.New: Cannot initialise with null arguments.");
 
             Attempts = 0;
-            EndPoint = destinationEP;
+            EndPoint = destination;
             Packet = packet;
             Parent = parent;
         }
@@ -103,6 +103,20 @@ namespace Oddmatics.RozWorld.Net.Client
                 Parent.Send(Packet, EndPoint);
                 Parent.TimeoutTimer.Elapsed += new ElapsedEventHandler(TimeoutTimer_Elapsed);
                 Started = true;
+            }
+        }
+
+        /// <summary>
+        /// Stops this PacketWatcher.
+        /// </summary>
+        public void Stop()
+        {
+            if (Started)
+            {
+                Parent.TimeoutTimer.Elapsed -= TimeoutTimer_Elapsed;
+                Started = false;
+                SinceLastSend = 0;
+                Attempts = 0;
             }
         }
 

@@ -72,7 +72,12 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <summary>
         /// Occurs when a server information response has been received.
         /// </summary>
-        public event InfoResponseReceivedHandler InfoResponseReceived;
+        public event PacketReceivedEventHandler InfoResponseReceived;
+
+        /// <summary>
+        /// Occurs when a sign up response has been received.
+        /// </summary>
+        public event PacketReceivedEventHandler SignUpResponseReceived;
 
 
         /// <summary>
@@ -134,8 +139,8 @@ namespace Oddmatics.RozWorld.Net.Client
                     WatchedPackets["ServerInfoRequest"].Reset(packet);
                 else
                 {
-                    State = ClientState.Broadcasting;
                     var packetWatcher = new PacketWatcher(packet, SERVER_BROADCAST_ENDPOINT, this);
+                    State = ClientState.Broadcasting;
                     packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_ServerScan);
                     WatchedPackets.Add("ServerInfoRequest", packetWatcher);
                     packetWatcher.Start();
@@ -143,6 +148,25 @@ namespace Oddmatics.RozWorld.Net.Client
             }
             else
                 throw new InvalidOperationException("RwUdpClient.BroadcastServerScan");
+        }
+
+        /// <summary>
+        /// Sends a sign up request packet to a remote server.
+        /// </summary>
+        /// <param name="username">The username to sign up with.</param>
+        /// <param name="passwordHash">The SHA-256 hashed password</param>
+        /// <param name="destination"></param>
+        public void SignUpToServer(string username, byte[] passwordHash, IPEndPoint destination)
+        {
+            if (State == ClientState.Idle)
+            {
+                var packet = new SignUpRequestPacket(username, passwordHash);
+                var packetWatcher = new PacketWatcher(packet, destination, this);
+                State = ClientState.SigningUp;
+                packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_SignUp);
+                WatchedPackets.Add("SignUpRequest", packetWatcher);
+                packetWatcher.Start();
+            }
         }
 
         /// <summary>
@@ -166,7 +190,15 @@ namespace Oddmatics.RozWorld.Net.Client
                     break;
 
                 case PacketType.SIGN_UP_ID:
-                    
+                    if (SignUpResponseReceived != null && State == ClientState.SigningUp &&
+                        senderEP == WatchedPackets["SignUpRequest"].EndPoint)
+                    {
+                        WatchedPackets["SignUpRequest"].Stop();
+                        WatchedPackets["SignUpRequest"].Timeout -= packetWatcher_Timeout_SignUp;
+                        WatchedPackets.Remove("SignUpRequest");
+                        SignUpResponseReceived(this, new SignUpResponsePacket(rxData, senderEP));
+                    }
+
                     break;
 
                 case PacketType.LOG_IN_ID:
@@ -208,6 +240,16 @@ namespace Oddmatics.RozWorld.Net.Client
             State = ClientState.Idle;
             WatchedPackets["ServerInfoRequest"].Timeout -= packetWatcher_Timeout_ServerScan;
             WatchedPackets.Remove("ServerInfoRequest");
+        }
+
+        /// <summary>
+        /// [WatchedPackets[SignUpRequest].Timeout] Sign up packet timeout.
+        /// </summary>
+        private void packetWatcher_Timeout_SignUp(object sender, EventArgs e)
+        {
+            State = ClientState.Idle;
+            WatchedPackets["SignUpRequest"].Timeout -= packetWatcher_Timeout_SignUp;
+            WatchedPackets.Remove("SignUpRequest");
         }
     }
 }
