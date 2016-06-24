@@ -22,9 +22,9 @@ namespace Oddmatics.RozWorld.Net.Packets
     public class SignUpResponsePacket : IPacket
     {
         /// <summary>
-        /// Gets the error message describing the failed sign up attempt, if applicable.
+        /// Gets the error message ID describing the reason for the sign up failure, if applicable.
         /// </summary>
-        public string ErrorMessage { get; private set; }
+        public byte ErrorMessageID { get; private set; }
 
         /// <summary>
         /// Gets the ID of this SignUpResponsePacket.
@@ -72,9 +72,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             int currentIndex = 2; // Skip first two bytes for ID
             Success = ByteParse.NextBool(data, ref currentIndex);
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1);
-
-            if (!Success)
-                ErrorMessage = ByteParse.NextStringByLength(data, ref currentIndex, 2);
+            ErrorMessageID = ByteParse.NextByte(data, ref currentIndex);
         }
 
         /// <summary>
@@ -82,16 +80,13 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         /// <param name="success">Whether the sign up attempt was a success.</param>
         /// <param name="username">The username that was registered.</param>
-        /// <param name="error">A message describing an error, if the sign up attempt failed.</param>
-        public SignUpResponsePacket(bool success, string username, string error = "")
+        /// <param name="errorId">The error message ID, if the sign up attempt failed.</param>
+        public SignUpResponsePacket(bool success, string username, byte errorId)
         {
-            if (username.Length == 0 || username.Length > 127)
+            if ((username.Length == 0 || username.Length > 127) && errorId == ErrorMessage.NO_ERROR)
                 throw new ArgumentException("SignUpResponsePacket.New: Invalid username length.");
 
-            if ((!success && error.Length == 0) || error.Length > (ushort.MaxValue / 2) - 1)
-                throw new ArgumentException("SignUpResponsePacket.New: Invalid error message length.");
-
-            ErrorMessage = error;
+            ErrorMessageID = errorId;
             Success = success;
             Username = username;
         }
@@ -108,9 +103,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             data.AddRange(ID.GetBytes());
             data.AddRange(Success.GetBytes());
             data.AddRange(Username.GetBytesByLength(1));
-
-            if (!Success)
-                data.AddRange(ErrorMessage.GetBytesByLength(2));
+            data.Add(ErrorMessageID);
 
             return data.ToArray();
         }

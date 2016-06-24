@@ -49,6 +49,7 @@
     <Compile Include="Client\Event\PacketReceivedEventHandler.cs" />
     <Compile Include="Client\PacketWatcher.cs" />
     <Compile Include="Client\RwUdpClient.cs" />
+    <Compile Include="Packets\ErrorMessage.cs" />
     <Compile Include="Packets\IPacket.cs" />
     <Compile Include="Packets\LogInRequestPacket.cs" />
     <Compile Include="Packets\PacketTimeout.cs" />
@@ -59,7 +60,7 @@
     <Compile Include="Packets\SignUpRequestPacket.cs" />
     <Compile Include="Packets\SignUpResponsePacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Server\Event\InfoRequestReceivedHandler.cs" />
+    <Compile Include="Server\Event\PacketReceivedEventHandler.cs" />
     <Compile Include="Server\RwUdpServer.cs" />
   </ItemGroup>
   <ItemGroup />

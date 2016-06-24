@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.Net.Server.Event.InfoRequestReceivedHandler -- RozWorld Server Information Request Packet Receieved Delegate
+ * Oddmatics.RozWorld.Net.Server.Event.PacketReceivedEventHandler -- RozWorld Server Packet Receieved Delegate
  *
  * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
@@ -14,9 +14,9 @@ using Oddmatics.RozWorld.Net.Packets;
 namespace Oddmatics.RozWorld.Net.Server.Event
 {
     /// <summary>
-    /// Represents the method that will handle an InfoRequestReceived event.
+    /// Represents the method that will handle packet received events.
     /// </summary>
     /// <param name="sender">The RwUdpServer instance that fired the event.</param>
-    /// <param name="packet">The ServerInfoRequestPacket instance containing the packet's data.</param>
-    public delegate void InfoRequestReceivedHandler(RwUdpServer sender, ServerInfoRequestPacket packet);
+    /// <param name="packet">The IPacket that was received.</param>
+    public delegate void PacketReceivedEventHandler(RwUdpServer sender, IPacket packet);
 }
