@@ -191,7 +191,7 @@ namespace Oddmatics.RozWorld.Net.Client
 
                 case PacketType.SIGN_UP_ID:
                     if (SignUpResponseReceived != null && State == ClientState.SigningUp &&
-                        senderEP == WatchedPackets["SignUpRequest"].EndPoint)
+                        senderEP.Equals(WatchedPackets["SignUpRequest"].EndPoint))
                     {
                         WatchedPackets["SignUpRequest"].Stop();
                         WatchedPackets["SignUpRequest"].Timeout -= packetWatcher_Timeout_SignUp;
