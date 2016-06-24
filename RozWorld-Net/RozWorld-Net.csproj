@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client\ClientState.cs" />
-    <Compile Include="Client\Event\PacketReceivedEventHandler.cs" />
+    <Compile Include="Client\Event\PacketEventHandler.cs" />
     <Compile Include="Client\PacketWatcher.cs" />
     <Compile Include="Client\RwUdpClient.cs" />
     <Compile Include="Packets\ErrorMessage.cs" />

@@ -56,7 +56,7 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <summary>
         /// The current ClientState of this RwUdpClient.
         /// </summary>
-        private ClientState State;
+        public ClientState State { get; private set; }
 
         /// <summary>
         /// The Timer that advances timeout counts on important packets and time since last server response.
@@ -72,12 +72,17 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <summary>
         /// Occurs when a server information response has been received.
         /// </summary>
-        public event PacketReceivedEventHandler InfoResponseReceived;
+        public event PacketEventHandler InfoResponseReceived;
+
+        /// <summary>
+        /// Occurs when a packet has timed out.
+        /// </summary>
+        public event PacketEventHandler PacketTimeout;
 
         /// <summary>
         /// Occurs when a sign up response has been received.
         /// </summary>
-        public event PacketReceivedEventHandler SignUpResponseReceived;
+        public event PacketEventHandler SignUpResponseReceived;
 
 
         /// <summary>
@@ -154,8 +159,8 @@ namespace Oddmatics.RozWorld.Net.Client
         /// Sends a sign up request packet to a remote server.
         /// </summary>
         /// <param name="username">The username to sign up with.</param>
-        /// <param name="passwordHash">The SHA-256 hashed password</param>
-        /// <param name="destination"></param>
+        /// <param name="passwordHash">The SHA-256 hashed password.</param>
+        /// <param name="destination">The IPEndPoint of the remote server.</param>
         public void SignUpToServer(string username, byte[] passwordHash, IPEndPoint destination)
         {
             if (State == ClientState.Idle)
@@ -248,6 +253,10 @@ namespace Oddmatics.RozWorld.Net.Client
         private void packetWatcher_Timeout_SignUp(object sender, EventArgs e)
         {
             State = ClientState.Idle;
+
+            if (PacketTimeout != null)
+                PacketTimeout(this, WatchedPackets["SignUpRequest"].Packet);
+
             WatchedPackets["SignUpRequest"].Timeout -= packetWatcher_Timeout_SignUp;
             WatchedPackets.Remove("SignUpRequest");
         }

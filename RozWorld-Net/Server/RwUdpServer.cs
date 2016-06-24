@@ -49,12 +49,12 @@ namespace Oddmatics.RozWorld.Net.Server
         /// <summary>
         /// Occurs when a server information request has been received.
         /// </summary>
-        public event PacketReceivedEventHandler InfoRequestReceived;
+        public event PacketEventHandler InfoRequestReceived;
 
         /// <summary>
         /// Occurs when a sign up request has been received.
         /// </summary>
-        public event PacketReceivedEventHandler SignUpRequestReceived;
+        public event PacketEventHandler SignUpRequestReceived;
 
 
         /// <summary>

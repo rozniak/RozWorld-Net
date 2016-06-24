@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.Net.Client.Event.PacketReceivedEventHandler -- RozWorld Client Packet Receieved Delegate
+ * Oddmatics.RozWorld.Net.Client.Event.PacketEventHandler -- RozWorld Client Packet Receieved Delegate
  *
  * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
@@ -18,5 +18,5 @@ namespace Oddmatics.RozWorld.Net.Client.Event
     /// </summary>
     /// <param name="sender">The RwUdpClient instance that fired the event.</param>
     /// <param name="packet">The IPacket that was received.</param>
-    public delegate void PacketReceivedEventHandler(RwUdpClient sender, IPacket packet);
+    public delegate void PacketEventHandler(RwUdpClient sender, IPacket packet);
 }
