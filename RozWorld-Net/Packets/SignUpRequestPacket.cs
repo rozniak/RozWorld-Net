@@ -79,7 +79,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="passwordHash">The SHA-256 password hash to use.</param>
         public SignUpRequestPacket(string username, byte[] passwordHash)
         {
-            if (username.LengthWithinRange(0, 128))
+            if (!username.LengthWithinRange(1, 128))
                 throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
 
             if (passwordHash.Length != 32)

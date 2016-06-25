@@ -102,8 +102,8 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="serverImplementation">The implementation to look for (servers running this implementation should respond).</param>
         public ServerInfoRequestPacket(string clientImplementation, ushort versionRaw, string serverImplementation)
         {
-            if (clientImplementation.LengthWithinRange(0, 128) ||
-                serverImplementation.LengthWithinRange(0, 128))
+            if (!clientImplementation.LengthWithinRange(1, 128) ||
+                !serverImplementation.LengthWithinRange(1, 128))
                 throw new ArgumentException("ServerInfoRequestPacket.New: Invalid implementation name length.");
 
             ClientImplementation = clientImplementation;

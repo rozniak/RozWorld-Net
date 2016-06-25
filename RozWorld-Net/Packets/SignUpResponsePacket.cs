@@ -83,7 +83,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="errorId">The error message ID, if the sign up attempt failed.</param>
         public SignUpResponsePacket(bool success, string username, byte errorId)
         {
-            if (username.LengthWithinRange(0, 128) && errorId == ErrorMessage.NO_ERROR)
+            if (!username.LengthWithinRange(1, 128) && errorId == ErrorMessage.NO_ERROR)
                 throw new ArgumentException("SignUpResponsePacket.New: Invalid username length.");
 
             ErrorMessageID = errorId;

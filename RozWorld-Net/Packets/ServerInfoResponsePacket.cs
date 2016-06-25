@@ -98,8 +98,8 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         public ServerInfoResponsePacket(bool clientCompatible, short maxPlayers, short onlinePlayers, string serverImplementation, string serverName)
         {
-            if (serverName.Length == 0 || serverName.Length > 127 ||
-                serverImplementation.Length == 0 || serverImplementation.Length > 127)
+            if (!serverName.LengthWithinRange(1, 128) ||
+                !serverImplementation.LengthWithinRange(1, 128))
                 throw new ArgumentException("ServerInfoResponsePacket.New: Invalid server name/implementation length.");
 
             ClientCompatible = clientCompatible;
