@@ -70,6 +70,11 @@ namespace Oddmatics.RozWorld.Net.Client
 
 
         /// <summary>
+        /// Occurs when the current connection is terminated by the remote host - for local class usage only.
+        /// </summary>
+        private event EventHandler ConnectionError;
+
+        /// <summary>
         /// Occurs when the current connection is terminated by the remote host.
         /// </summary>
         public event EventHandler ConnectionTerminated;
@@ -157,7 +162,7 @@ namespace Oddmatics.RozWorld.Net.Client
                 }
             }
             else
-                throw new InvalidOperationException("RwUdpClient.BroadcastServerScan");
+                throw new InvalidOperationException("RwUdpClient.BroadcastServerScan: Cannot broadcast in the current state.");
         }
 
         /// <summary>
@@ -174,6 +179,7 @@ namespace Oddmatics.RozWorld.Net.Client
                 var packetWatcher = new PacketWatcher(packet, destination, this);
                 State = ClientState.SigningUp;
                 packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_SignUp);
+                ConnectionError += new EventHandler(packetWatcher_Timeout_SignUp);
                 WatchedPackets.Add("SignUpRequest", packetWatcher);
                 packetWatcher.Start();
             }
@@ -193,6 +199,8 @@ namespace Oddmatics.RozWorld.Net.Client
             }
             catch (SocketException socketEx) // Remote host unreachable
             {
+                if (ConnectionError != null)
+                    ConnectionError(this, EventArgs.Empty);
                 if (ConnectionTerminated != null)
                     ConnectionTerminated(this, EventArgs.Empty);
                 return;
@@ -211,14 +219,13 @@ namespace Oddmatics.RozWorld.Net.Client
                         InfoResponseReceived(this, new ServerInfoResponsePacket(rxData, senderEP));
                     break;
 
+                    // SignUpResponsePacket
                 case PacketType.SIGN_UP_ID:
                     if (SignUpResponseReceived != null && State == ClientState.SigningUp &&
                         senderEP.Equals(WatchedPackets["SignUpRequest"].EndPoint))
                     {
                         State = ClientState.Idle;
-                        WatchedPackets["SignUpRequest"].Stop();
-                        WatchedPackets["SignUpRequest"].Timeout -= packetWatcher_Timeout_SignUp;
-                        WatchedPackets.Remove("SignUpRequest");
+                        KillReceive("SignUpRequest");
                         SignUpResponseReceived(this, new SignUpResponsePacket(rxData, senderEP));
                     }
 
@@ -271,12 +278,39 @@ namespace Oddmatics.RozWorld.Net.Client
         private void packetWatcher_Timeout_SignUp(object sender, EventArgs e)
         {
             State = ClientState.Idle;
+            IPacket packet = KillReceive("SignUpRequest");
 
-            if (PacketTimeout != null)
-                PacketTimeout(this, WatchedPackets["SignUpRequest"].Packet);
+            if (PacketTimeout != null && sender is PacketWatcher)
+                PacketTimeout(this, packet);
+        }
 
-            WatchedPackets["SignUpRequest"].Timeout -= packetWatcher_Timeout_SignUp;
-            WatchedPackets.Remove("SignUpRequest");
+
+        /// <summary>
+        /// Kills the current receiving operation and returns the IPacket from the associated watched packets.
+        /// </summary>
+        /// <param name="requestType">The ongoing request operation to kill.</param>
+        /// <returns>The IPacket in the watched packets Dictionary associated with the operation specified.</returns>
+        private IPacket KillReceive(string requestType)
+        {
+            if (!WatchedPackets.ContainsKey(requestType))
+                throw new ArgumentException("RwUdpClient.KillReceive: Unknown request type specified.");
+
+            IPacket packet = WatchedPackets[requestType].Packet;
+            WatchedPackets[requestType].Stop();
+
+            switch (requestType)
+            {
+                case "SignUpRequest":
+                    WatchedPackets[requestType].Timeout -= packetWatcher_Timeout_SignUp;
+                    ConnectionTerminated -= packetWatcher_Timeout_SignUp;
+                    break;
+
+                default: return packet; // Should never reach this point
+            }
+
+            WatchedPackets.Remove(requestType);
+
+            return packet;
         }
     }
 }
