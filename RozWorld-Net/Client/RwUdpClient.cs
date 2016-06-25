@@ -70,6 +70,11 @@ namespace Oddmatics.RozWorld.Net.Client
 
 
         /// <summary>
+        /// Occurs when the current connection is terminated by the remote host.
+        /// </summary>
+        public event EventHandler ConnectionTerminated;
+
+        /// <summary>
         /// Occurs when a server information response has been received.
         /// </summary>
         public event PacketEventHandler InfoResponseReceived;
@@ -180,7 +185,19 @@ namespace Oddmatics.RozWorld.Net.Client
         private void Received(IAsyncResult result)
         {
             IPEndPoint senderEP = new IPEndPoint(0, 0);
-            byte[] rxData = Client.EndReceive(result, ref senderEP);
+            byte[] rxData;
+
+            try
+            {
+                rxData = Client.EndReceive(result, ref senderEP);
+            }
+            catch (SocketException socketEx) // Remote host unreachable
+            {
+                if (ConnectionTerminated != null)
+                    ConnectionTerminated(this, EventArgs.Empty);
+                return;
+            }
+            
             Client.BeginReceive(new AsyncCallback(Received), null);
 
             int currentIndex = 0;
@@ -198,6 +215,7 @@ namespace Oddmatics.RozWorld.Net.Client
                     if (SignUpResponseReceived != null && State == ClientState.SigningUp &&
                         senderEP.Equals(WatchedPackets["SignUpRequest"].EndPoint))
                     {
+                        State = ClientState.Idle;
                         WatchedPackets["SignUpRequest"].Stop();
                         WatchedPackets["SignUpRequest"].Timeout -= packetWatcher_Timeout_SignUp;
                         WatchedPackets.Remove("SignUpRequest");
@@ -207,7 +225,7 @@ namespace Oddmatics.RozWorld.Net.Client
                     break;
 
                 case PacketType.LOG_IN_ID:
-
+                    // TODO: code this
                     break;
 
                 case 0:
