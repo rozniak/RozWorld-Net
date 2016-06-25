@@ -111,6 +111,16 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
+        /// Creates an exact copy of this ServerInfoResponsePacket.
+        /// </summary>
+        /// <returns>The ServerInfoResponsePacket this method creates, cast as an object.</returns>
+        public object Clone()
+        {
+            return new ServerInfoResponsePacket(ClientCompatible, MaxPlayers, OnlinePlayers,
+                ServerImplementation, ServerName);
+        }
+
+        /// <summary>
         /// Gets the data in this ServerInfoResponsePacket as a byte array.
         /// </summary>
         /// <returns>A byte array containing the data in this ServerInfoResponsePacket.</returns>

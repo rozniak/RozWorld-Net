@@ -91,6 +91,15 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
+        /// Creates an exact copy of this SignUpRequestPacket.
+        /// </summary>
+        /// <returns>The SignUpRequestPacket this method creates, cast as an object.</returns>
+        public object Clone()
+        {
+            return new SignUpRequestPacket(Username, PasswordHash);
+        }
+
+        /// <summary>
         /// Gets the data in this SignUpRequestPacket as a byte array.
         /// </summary>
         /// <returns>A byte array containing the data in this SignUpRequestPacket.</returns>

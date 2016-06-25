@@ -113,6 +113,15 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
+        /// Creates an exact copy of this ServerInfoRequestPacket.
+        /// </summary>
+        /// <returns>The ServerInfoRequestPacket this method creates, cast as an object.</returns>
+        public object Clone()
+        {
+            return new ServerInfoRequestPacket(ClientImplementation, ClientVersionRaw, ServerImplementation);
+        }
+
+        /// <summary>
         /// Gets the data in this ServerInfoRequestPacket as a byte array.
         /// </summary>
         /// <returns>A byte array containing the data in this ServerInfoRequestPacket.</returns>

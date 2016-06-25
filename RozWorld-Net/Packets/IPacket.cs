@@ -17,7 +17,7 @@ namespace Oddmatics.RozWorld.Net.Packets
     /// <summary>
     /// Represents a network packet.
     /// </summary>
-    public interface IPacket
+    public interface IPacket : ICloneable
     {
         /// <summary>
         /// Gets the ID of this IPacket.

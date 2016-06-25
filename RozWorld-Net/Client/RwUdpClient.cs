@@ -166,6 +166,45 @@ namespace Oddmatics.RozWorld.Net.Client
         }
 
         /// <summary>
+        /// Kills the current receiving operation and returns the IPacket from the associated watched packets.
+        /// </summary>
+        /// <param name="requestType">The ongoing request operation to kill.</param>
+        /// <returns>The IPacket in the watched packets Dictionary associated with the operation specified.</returns>
+        private IPacket KillReceive(string requestType)
+        {
+            if (!WatchedPackets.ContainsKey(requestType))
+                throw new ArgumentException("RwUdpClient.KillReceive: Unknown request type specified.");
+
+            IPacket packet = (IPacket)WatchedPackets[requestType].Packet.Clone();
+            WatchedPackets[requestType].Stop();
+
+            switch (requestType)
+            {
+                case "SignUpRequest":
+                    WatchedPackets[requestType].Timeout -= packetWatcher_Timeout_SignUp;
+                    ConnectionError -= packetWatcher_Timeout_SignUp;
+                    break;
+
+                default: return packet; // Should never reach this point
+            }
+
+            WatchedPackets.Remove(requestType);
+
+            return packet;
+        }
+
+        /// <summary>
+        /// Sends an IPacket to the specified IPEndPoint.
+        /// </summary>
+        /// <param name="packet">The IPacket to send.</param>
+        /// <param name="destination">The destination IPEndPoint.</param>
+        public void Send(IPacket packet, IPEndPoint destination)
+        {
+            byte[] txData = packet.GetBytes();
+            Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
+        }
+
+        /// <summary>
         /// Sends a sign up request packet to a remote server.
         /// </summary>
         /// <param name="username">The username to sign up with.</param>
@@ -183,6 +222,29 @@ namespace Oddmatics.RozWorld.Net.Client
                 WatchedPackets.Add("SignUpRequest", packetWatcher);
                 packetWatcher.Start();
             }
+        }
+
+
+        /// <summary>
+        /// [WatchedPackets[ServerInfoRequest].Timeout] Server scan packet timeout.
+        /// </summary>
+        private void packetWatcher_Timeout_ServerScan(object sender, EventArgs e)
+        {
+            State = ClientState.Idle;
+            WatchedPackets["ServerInfoRequest"].Timeout -= packetWatcher_Timeout_ServerScan;
+            WatchedPackets.Remove("ServerInfoRequest");
+        }
+
+        /// <summary>
+        /// [WatchedPackets[SignUpRequest].Timeout] Sign up packet timeout.
+        /// </summary>
+        private void packetWatcher_Timeout_SignUp(object sender, EventArgs e)
+        {
+            State = ClientState.Idle;
+            IPacket packet = KillReceive("SignUpRequest");
+
+            if (PacketTimeout != null && sender is PacketWatcher)
+                PacketTimeout(this, packet);
         }
 
         /// <summary>
@@ -243,74 +305,11 @@ namespace Oddmatics.RozWorld.Net.Client
         }
 
         /// <summary>
-        /// Sends an IPacket to the specified IPEndPoint.
-        /// </summary>
-        /// <param name="packet">The IPacket to send.</param>
-        /// <param name="destination">The destination IPEndPoint.</param>
-        public void Send(IPacket packet, IPEndPoint destination)
-        {
-            byte[] txData = packet.GetBytes();
-            Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
-        }
-
-        /// <summary>
         /// [BeginSend Callback] UDP Packet Sent.
         /// </summary>
         private void Sent(IAsyncResult result)
         {
             Client.EndSend(result);
-        }
-
-
-        /// <summary>
-        /// [WatchedPackets[ServerInfoRequest].Timeout] Server scan packet timeout.
-        /// </summary>
-        private void packetWatcher_Timeout_ServerScan(object sender, EventArgs e)
-        {
-            State = ClientState.Idle;
-            WatchedPackets["ServerInfoRequest"].Timeout -= packetWatcher_Timeout_ServerScan;
-            WatchedPackets.Remove("ServerInfoRequest");
-        }
-
-        /// <summary>
-        /// [WatchedPackets[SignUpRequest].Timeout] Sign up packet timeout.
-        /// </summary>
-        private void packetWatcher_Timeout_SignUp(object sender, EventArgs e)
-        {
-            State = ClientState.Idle;
-            IPacket packet = KillReceive("SignUpRequest");
-
-            if (PacketTimeout != null && sender is PacketWatcher)
-                PacketTimeout(this, packet);
-        }
-
-
-        /// <summary>
-        /// Kills the current receiving operation and returns the IPacket from the associated watched packets.
-        /// </summary>
-        /// <param name="requestType">The ongoing request operation to kill.</param>
-        /// <returns>The IPacket in the watched packets Dictionary associated with the operation specified.</returns>
-        private IPacket KillReceive(string requestType)
-        {
-            if (!WatchedPackets.ContainsKey(requestType))
-                throw new ArgumentException("RwUdpClient.KillReceive: Unknown request type specified.");
-
-            IPacket packet = WatchedPackets[requestType].Packet;
-            WatchedPackets[requestType].Stop();
-
-            switch (requestType)
-            {
-                case "SignUpRequest":
-                    WatchedPackets[requestType].Timeout -= packetWatcher_Timeout_SignUp;
-                    ConnectionTerminated -= packetWatcher_Timeout_SignUp;
-                    break;
-
-                default: return packet; // Should never reach this point
-            }
-
-            WatchedPackets.Remove(requestType);
-
-            return packet;
         }
     }
 }

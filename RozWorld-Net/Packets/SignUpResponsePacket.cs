@@ -93,6 +93,15 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
+        /// Creates an exact copy of this SignUpResponsePacket.
+        /// </summary>
+        /// <returns>The SignUpResponsePacket this method creates, cast as an object.</returns>
+        public object Clone()
+        {
+            return new SignUpResponsePacket(Success, Username, ErrorMessageID);
+        }
+
+        /// <summary>
         /// Gets the data in this SignUpResponsePacket as a byte array.
         /// </summary>
         /// <returns>A byte array containing the data in this SignUpResponsePacket.</returns>

@@ -112,6 +112,15 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
+        /// Creates an exact copy of this LogInRequestPacket.
+        /// </summary>
+        /// <returns>The LogInRequestPacket this method creates, cast as an object.</returns>
+        public object Clone()
+        {
+            return new LogInRequestPacket(SkinDownloads, Username, UtcHashTime, PasswordHash);
+        }
+
+        /// <summary>
         /// Gets the data in this LogInRequestPacket as a byte array.
         /// </summary>
         /// <returns>A byte array containing the data in this LogInRequestPacket.</returns>
