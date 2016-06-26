@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Oddmatics.RozWorld.Net.Packets;
-using Oddmatics.RozWorld.Net.Server.Event;
+using Oddmatics.RozWorld.Net.Packets.Event;
 using Oddmatics.Util.IO;
 
 namespace Oddmatics.RozWorld.Net.Server

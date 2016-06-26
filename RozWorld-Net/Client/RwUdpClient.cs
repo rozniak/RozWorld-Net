@@ -9,8 +9,8 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
-using Oddmatics.RozWorld.Net.Client.Event;
 using Oddmatics.RozWorld.Net.Packets;
+using Oddmatics.RozWorld.Net.Packets.Event;
 using Oddmatics.RozWorld.Net.Server;
 using Oddmatics.Util.IO;
 using System;
@@ -30,7 +30,7 @@ namespace Oddmatics.RozWorld.Net.Client
         /// The default broadcast IPEndPoint destination to RozWorld servers.
         /// </summary>
         public static readonly IPEndPoint SERVER_BROADCAST_ENDPOINT = new IPEndPoint(IPAddress.Broadcast,
-                                                                            RwUdpServer.ROZWORLD_DEFAULT_PORT);
+            RwUdpServer.ROZWORLD_DEFAULT_PORT);
 
 
         /// <summary>

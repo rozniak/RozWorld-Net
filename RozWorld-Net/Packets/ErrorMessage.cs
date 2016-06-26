@@ -52,5 +52,9 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// The network function has not been fully implemented.
         /// </summary>
         public const byte NOT_IMPLEMENTED = 100;
+        /// <summary>
+        /// The was an error on the server that prevented the operation from completing.
+        /// </summary>
+        public const byte INTERNAL_ERROR = 255;
     }
 }
