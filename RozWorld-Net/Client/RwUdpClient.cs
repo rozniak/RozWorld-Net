@@ -240,11 +240,6 @@ namespace Oddmatics.RozWorld.Net.Client
             return false;
         }
 
-        void packetWatcher_Timeout_LogIn(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Sends an IPacket to the specified IPEndPoint.
         /// </summary>
@@ -282,6 +277,18 @@ namespace Oddmatics.RozWorld.Net.Client
             return false;
         }
 
+
+        /// <summary>
+        /// [WatchedPackets[LogInRequest].Timeout] Log in packet timeout.
+        /// </summary>
+        private void packetWatcher_Timeout_LogIn(object sender, EventArgs e)
+        {
+            State = ClientState.Idle;
+            IPacket packet = KillReceive("LogInRequest");
+
+            if (PacketTimeout != null && sender is PacketWatcher)
+                PacketTimeout(this, packet);
+        }
 
         /// <summary>
         /// [WatchedPackets[ServerInfoRequest].Timeout] Server scan packet timeout.
