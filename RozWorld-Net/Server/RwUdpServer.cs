@@ -9,13 +9,13 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using Oddmatics.RozWorld.Net.Packets;
+using Oddmatics.RozWorld.Net.Packets.Event;
+using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using Oddmatics.RozWorld.Net.Packets;
-using Oddmatics.RozWorld.Net.Packets.Event;
-using Oddmatics.Util.IO;
 
 namespace Oddmatics.RozWorld.Net.Server
 {
@@ -52,6 +52,11 @@ namespace Oddmatics.RozWorld.Net.Server
         public event PacketEventHandler InfoRequestReceived;
 
         /// <summary>
+        /// Occurs when a log in request has been received.
+        /// </summary>
+        public event PacketEventHandler LogInRequestReceived;
+
+        /// <summary>
         /// Occurs when a sign up request has been received.
         /// </summary>
         public event PacketEventHandler SignUpRequestReceived;
@@ -83,6 +88,18 @@ namespace Oddmatics.RozWorld.Net.Server
         }
 
         /// <summary>
+        /// Sends an IPacket to the specified Socket.
+        /// </summary>
+        /// <param name="packet">The IPacket to send.</param>
+        /// <param name="destination">The destination IPEndPoint.</param>
+        public void Send(IPacket packet, IPEndPoint destination)
+        {
+            byte[] txData = packet.GetBytes();
+            Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
+        }
+
+
+        /// <summary>
         /// [BeginReceive Callback] UDP Packet Received.
         /// </summary>
         private void Received(IAsyncResult result)
@@ -97,15 +114,21 @@ namespace Oddmatics.RozWorld.Net.Server
             switch (id)
             {
                     // ServerInfoRequestPacket
-                case 1:
+                case PacketType.SERVER_INFO_ID:
                     if (InfoRequestReceived != null)
                         InfoRequestReceived(this, new ServerInfoRequestPacket(rxData, senderEP));
                     break;
 
                     // SignUpRequestPacket
-                case 2:
+                case PacketType.SIGN_UP_ID:
                     if (SignUpRequestReceived != null)
                         SignUpRequestReceived(this, new SignUpRequestPacket(rxData, senderEP));
+                    break;
+
+                    // LogInRequestPacket
+                case PacketType.LOG_IN_ID:
+                    if (LogInRequestReceived != null)
+                        LogInRequestReceived(this, new LogInRequestPacket(rxData, senderEP));
                     break;
 
                 case 0:
@@ -113,17 +136,6 @@ namespace Oddmatics.RozWorld.Net.Server
                     // Bad packet
                     break;
             }
-        }
-
-        /// <summary>
-        /// Sends an IPacket to the specified Socket.
-        /// </summary>
-        /// <param name="packet">The IPacket to send.</param>
-        /// <param name="destination">The destination IPEndPoint.</param>
-        public void Send(IPacket packet, IPEndPoint destination)
-        {
-            byte[] txData = packet.GetBytes();
-            Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
         }
 
         /// <summary>

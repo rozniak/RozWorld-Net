@@ -27,6 +27,11 @@ namespace Oddmatics.RozWorld.Net.Client
     public class RwUdpClient
     {
         /// <summary>
+        /// The time in milliseconds until the remote server is deemed unreachable.
+        /// </summary>
+        public const ushort SERVER_TIMEOUT_TIME = 15000;
+
+        /// <summary>
         /// The default broadcast IPEndPoint destination to RozWorld servers.
         /// </summary>
         public static readonly IPEndPoint SERVER_BROADCAST_ENDPOINT = new IPEndPoint(IPAddress.Broadcast,
@@ -83,6 +88,11 @@ namespace Oddmatics.RozWorld.Net.Client
         /// Occurs when a server information response has been received.
         /// </summary>
         public event PacketEventHandler InfoResponseReceived;
+
+        /// <summary>
+        /// Occurs when a log in response has been received.
+        /// </summary>
+        public event PacketEventHandler LogInResponseReceieved;
 
         /// <summary>
         /// Occurs when a packet has timed out.
@@ -194,6 +204,48 @@ namespace Oddmatics.RozWorld.Net.Client
         }
 
         /// <summary>
+        /// Sends a log in request packet to a remote server.
+        /// </summary>
+        /// <param name="username">The username to log in with.</param>
+        /// <param name="passwordHash">The SHA-256 hashed password.</param>
+        /// <param name="chatOnly">Whether to log in as a chat only client.</param>
+        /// <param name="skinDownloads">Whether to enable skin downloading from the server.</param>
+        /// <returns>True if a log in request was sent.</returns>
+        public bool LogInToServer(string username, byte[] passwordHash, bool chatOnly, bool skinDownloads, IPEndPoint destination)
+        {
+            if (State == ClientState.Idle)
+            {
+                var finalHash = new List<byte>();
+                DateTime currentUtc = DateTime.UtcNow;
+                DateTime midnightUtc = new DateTime(currentUtc.Year, currentUtc.Month,
+                    currentUtc.Day);
+                int hashTickTime = (int)(currentUtc.Ticks - midnightUtc.Ticks);
+
+                finalHash.AddRange(passwordHash);
+                finalHash.AddRange(hashTickTime.GetBytes());
+
+                var packet = new LogInRequestPacket(username, finalHash.ToArray(), hashTickTime,
+                    chatOnly, skinDownloads);
+                var packetWatcher = new PacketWatcher(packet, destination, this);
+
+                State = ClientState.LoggingIn;
+                packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_LogIn);
+                ConnectionError += new EventHandler(packetWatcher_Timeout_LogIn);
+                WatchedPackets.Add("LogInRequest", packetWatcher);
+                packetWatcher.Start();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        void packetWatcher_Timeout_LogIn(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Sends an IPacket to the specified IPEndPoint.
         /// </summary>
         /// <param name="packet">The IPacket to send.</param>
@@ -210,18 +262,24 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <param name="username">The username to sign up with.</param>
         /// <param name="passwordHash">The SHA-256 hashed password.</param>
         /// <param name="destination">The IPEndPoint of the remote server.</param>
-        public void SignUpToServer(string username, byte[] passwordHash, IPEndPoint destination)
+        /// <returns>True if a sign up request was sent.</returns>
+        public bool SignUpToServer(string username, byte[] passwordHash, IPEndPoint destination)
         {
             if (State == ClientState.Idle)
             {
                 var packet = new SignUpRequestPacket(username, passwordHash);
                 var packetWatcher = new PacketWatcher(packet, destination, this);
+
                 State = ClientState.SigningUp;
                 packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_SignUp);
                 ConnectionError += new EventHandler(packetWatcher_Timeout_SignUp);
                 WatchedPackets.Add("SignUpRequest", packetWatcher);
                 packetWatcher.Start();
+
+                return true;
             }
+
+            return false;
         }
 
 
@@ -294,7 +352,25 @@ namespace Oddmatics.RozWorld.Net.Client
                     break;
 
                 case PacketType.LOG_IN_ID:
-                    // TODO: code this
+                    if (LogInResponseReceieved != null && State == ClientState.LoggingIn &&
+                        senderEP.Equals(WatchedPackets["LogInRequest"].EndPoint))
+                    {
+                        KillReceive("LogInRequest");
+                        var logInPacket = new LogInResponsePacket(rxData, senderEP);
+
+                        if (logInPacket.Success)
+                        {
+                            State = ClientState.Connected;
+                            EndPoint = senderEP;
+                            TimeoutTimer.Elapsed += new ElapsedEventHandler(TimeoutTimer_Elapsed_ServerConnection);
+                        }
+                        else
+                            State = ClientState.Idle;
+
+                        if (LogInResponseReceieved != null)
+                            LogInResponseReceieved(this, logInPacket);
+                    }
+
                     break;
 
                 case 0:
@@ -310,6 +386,23 @@ namespace Oddmatics.RozWorld.Net.Client
         private void Sent(IAsyncResult result)
         {
             Client.EndSend(result);
+        }
+
+        /// <summary>
+        /// [TimeoutTimer.Elapsed] Timeout timer ticked.
+        /// </summary>
+        private void TimeoutTimer_Elapsed_ServerConnection(object sender, ElapsedEventArgs e)
+        {
+            SinceServerPacket += (ushort)TimeoutTimer.Interval;
+
+            if (SinceServerPacket > SERVER_TIMEOUT_TIME)
+            {
+                TimeoutTimer.Elapsed -= TimeoutTimer_Elapsed_ServerConnection;
+                State = ClientState.Idle;
+
+                if (ConnectionTerminated != null)
+                    ConnectionTerminated(this, EventArgs.Empty);
+            }
         }
     }
 }
