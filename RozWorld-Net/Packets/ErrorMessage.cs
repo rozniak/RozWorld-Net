@@ -49,6 +49,10 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         public const byte ATTEMPTS_EXPIRED = 7;
         /// <summary>
+        /// The password hash time was deemed too old by the server.
+        /// </summary>
+        public const byte HASHTIME_INVALID = 8;
+        /// <summary>
         /// The network function has not been fully implemented.
         /// </summary>
         public const byte NOT_IMPLEMENTED = 100;
