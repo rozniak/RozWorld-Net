@@ -24,7 +24,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this SignUpRequestPacket.
         /// </summary>
-        public ushort ID { get { return PacketType.SIGN_UP_ID; } }
+        public ushort Id { get { return PacketType.SIGN_UP_ID; } }
 
         /// <summary>
         /// Gets the maximum send attempts for this SignUpRequestPacket.
@@ -58,9 +58,9 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
-        /// Initialises a new instance of the LogInRequestPacket class using network data.
+        /// Initialises a new instance of the SignUpRequestPacket class using network data.
         /// </summary>
-        /// <param name="data">The network data describing this LogInRequestPacket.</param>
+        /// <param name="data">The network data describing this SignUpRequestPacket.</param>
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
         public SignUpRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
@@ -73,7 +73,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         }
 
         /// <summary>
-        /// Initialises a new instance of the LogInRequestPacket with specified properties.
+        /// Initialises a new instance of the SignUpRequestPacket with specified properties.
         /// </summary>
         /// <param name="username">The username to use.</param>
         /// <param name="passwordHash">The SHA-256 password hash to use.</param>
@@ -107,7 +107,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             var data = new List<byte>();
 
-            data.AddRange(ID.GetBytes());
+            data.AddRange(Id.GetBytes());
             data.AddRange(Username.GetBytesByLength(1));
             data.AddRange(PasswordHash);
 

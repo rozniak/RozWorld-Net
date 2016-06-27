@@ -29,7 +29,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this ServerInfoResponsePacket.
         /// </summary>
-        public ushort ID { get { return PacketType.SERVER_INFO_ID; } }
+        public ushort Id { get { return PacketType.SERVER_INFO_ID; } }
 
         /// <summary>
         /// Gets the maximum players on the server.
@@ -128,7 +128,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             var data = new List<byte>();
 
-            data.AddRange(ID.GetBytes());
+            data.AddRange(Id.GetBytes());
             data.AddRange(ClientCompatible.GetBytes());
             data.AddRange(MaxPlayers.GetBytes());
             data.AddRange(OnlinePlayers.GetBytes());

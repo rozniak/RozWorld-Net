@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.Net.Packets.SignUpResponsePacket -- RozWorld Server Sign Up Response Packet
+ * Oddmatics.RozWorld.Net.Packets.LogInResponsePacket -- RozWorld Log In Response Packet
  *
  * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
@@ -17,9 +17,9 @@ using System.Net;
 namespace Oddmatics.RozWorld.Net.Packets
 {
     /// <summary>
-    /// [SERVER --> CLIENT] Represents a sign up response packet.
+    /// [SERVER --> CLIENT] Represents a log in response packet.
     /// </summary>
-    public class SignUpResponsePacket : IPacket
+    public class LogInResponsePacket : IPacket
     {
         /// <summary>
         /// Gets the error message ID describing the reason for the sign up failure, if applicable.
@@ -27,27 +27,27 @@ namespace Oddmatics.RozWorld.Net.Packets
         public byte ErrorMessageId { get; private set; }
 
         /// <summary>
-        /// Gets the ID of this SignUpResponsePacket.
+        /// Gets the ID of this LogInResponsePacket.
         /// </summary>
-        public ushort Id { get { return PacketType.SIGN_UP_ID; } }
+        public ushort Id { get { return PacketType.LOG_IN_ID; } }
 
         /// <summary>
-        /// Gets the maximum send attempts for this SignUpResponsePacket.
+        /// Gets the maximum send attempts for this LogInResponsePacket.
         /// </summary>
         public byte MaxSendAttempts { get { return 0; } }
 
         /// <summary>
-        /// Gets the sender of this SignUpResponsePacket.
+        /// Gets the sender of this LogInResponsePacket.
         /// </summary>
         public SenderIs Sender { get { return SenderIs.Server; } }
 
         /// <summary>
-        /// Gets the sender's IPEndPoint of this SignUpResponsePacket.
+        /// Gets the sender's IPEndPoint of this LogInResponsePacket.
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
 
         /// <summary>
-        /// Gets whether the sign up attempt was a success.
+        /// Gets whether the log in attempt was a success.
         /// </summary>
         public bool Success { get; private set; }
 
@@ -57,17 +57,17 @@ namespace Oddmatics.RozWorld.Net.Packets
         public ushort TimeUntilResend { get { return 0; } }
 
         /// <summary>
-        /// Gets the username that was registered on the server.
+        /// Gets the username that was logged into.
         /// </summary>
         public string Username { get; private set; }
 
 
         /// <summary>
-        /// Initialises a new instance of the SignUpResponsePacket class using network data.
+        /// Initialises a new instance of the LogInResponsePacket class using network data.
         /// </summary>
-        /// <param name="data">The network data describing this LogInRequestPacket.</param>
+        /// <param name="data">The network data describing this LogInResponsePacket.</param>
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
-        public SignUpResponsePacket(byte[] data, IPEndPoint senderEndPoint)
+        public LogInResponsePacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 2; // Skip first two bytes for ID
             Success = ByteParse.NextBool(data, ref currentIndex);
@@ -76,15 +76,15 @@ namespace Oddmatics.RozWorld.Net.Packets
         }
 
         /// <summary>
-        /// Initialises a new instance of the SignUpResponsePacket class with specified properties.
+        /// Initialises a new instance of the LogInResponsePacket class with specified properties.
         /// </summary>
-        /// <param name="success">Whether the sign up attempt was a success.</param>
+        /// <param name="success">Whether the log in attempt was a success.</param>
         /// <param name="username">The username that was registered.</param>
-        /// <param name="errorId">The error message ID, if the sign up attempt failed.</param>
-        public SignUpResponsePacket(bool success, string username, byte errorId)
+        /// <param name="errorId">The error message ID, if the log in attempt failed.</param>
+        public LogInResponsePacket(bool success, string username, byte errorId)
         {
             if (!username.LengthWithinRange(1, 128))
-                throw new ArgumentException("SignUpResponsePacket.New: Invalid username length.");
+                throw new ArgumentException("LogInResponsePacket.New: Invalid username length.");
 
             ErrorMessageId = errorId;
             Success = success;
@@ -93,18 +93,18 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
-        /// Creates an exact copy of this SignUpResponsePacket.
+        /// Creates an exact copy of this LogInResponsePacket.
         /// </summary>
-        /// <returns>The SignUpResponsePacket this method creates, cast as an object.</returns>
+        /// <returns>The LogInResponsePacket this method creates, cast as an object.</returns>
         public object Clone()
         {
-            return new SignUpResponsePacket(Success, Username, ErrorMessageId);
+            return new LogInResponsePacket(Success, Username, ErrorMessageId);
         }
 
         /// <summary>
-        /// Gets the data in this SignUpResponsePacket as a byte array.
+        /// Gets the data in this LogInResponsePacket as a byte array.
         /// </summary>
-        /// <returns>A byte array containing the data in this SignUpResponsePacket.</returns>
+        /// <returns>A byte array containing the data in this LogInResponsePacket.</returns>
         public byte[] GetBytes()
         {
             var data = new List<byte>();

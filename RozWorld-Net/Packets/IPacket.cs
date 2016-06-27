@@ -22,7 +22,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this IPacket.
         /// </summary>
-        ushort ID { get; }
+        ushort Id { get; }
 
         /// <summary>
         /// Gets the maximum send attempts for this IPacket.

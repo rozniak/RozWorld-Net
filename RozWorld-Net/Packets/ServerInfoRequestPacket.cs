@@ -47,7 +47,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the ID of this ServerInfoRequestPacket.
         /// </summary>
-        public ushort ID { get { return PacketType.SERVER_INFO_ID; } }
+        public ushort Id { get { return PacketType.SERVER_INFO_ID; } }
 
         /// <summary>
         /// Gets the maximum send attempts for this ServerInfoRequestPacket.
@@ -129,7 +129,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             var data = new List<byte>();
 
-            data.AddRange(ID.GetBytes());
+            data.AddRange(Id.GetBytes());
             data.AddRange(ClientImplementation.GetBytesByLength(1));
             data.AddRange(ClientVersionRaw.GetBytes());
             data.AddRange(ServerImplementation.GetBytesByLength(1));
