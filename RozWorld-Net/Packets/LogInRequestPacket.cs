@@ -74,13 +74,13 @@ namespace Oddmatics.RozWorld.Net.Packets
 
         /// <summary>
         /// Gets whether the time of the hash is acceptable for logging in.
-        /// Acceptable time difference is less than 5 
+        /// Acceptable time difference is less than 5 seconds.
         /// </summary>
         public bool ValidHashTime
         {
             get
             {
-                return UtcHashTimeDifference <= DateTime.UtcNow.Ticks - (TimeSpan.TicksPerSecond * 5);
+                return DateTime.UtcNow.Ticks + UtcHashTimeDifference > DateTime.UtcNow.Ticks - (TimeSpan.TicksPerSecond * 5);
             }
         }
 
