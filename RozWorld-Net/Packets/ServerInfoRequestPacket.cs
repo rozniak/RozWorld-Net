@@ -83,9 +83,9 @@ namespace Oddmatics.RozWorld.Net.Packets
         public ServerInfoRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 2; // Skip first two bytes for ID
-            ClientImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1);
+            ClientImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
             ClientVersionRaw = ByteParse.NextUShort(data, ref currentIndex);
-            ServerImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1);
+            ServerImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
 
             if (ClientImplementation == String.Empty ||
                 ServerImplementation == String.Empty)
@@ -102,8 +102,8 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="serverImplementation">The implementation to look for (servers running this implementation should respond).</param>
         public ServerInfoRequestPacket(string clientImplementation, ushort versionRaw, string serverImplementation)
         {
-            if (!clientImplementation.LengthWithinRange(1, 128) ||
-                !serverImplementation.LengthWithinRange(1, 128))
+            if (!clientImplementation.LengthWithinRange(1, 256) ||
+                !serverImplementation.LengthWithinRange(1, 256))
                 throw new ArgumentException("ServerInfoRequestPacket.New: Invalid implementation name length.");
 
             ClientImplementation = clientImplementation;
@@ -130,9 +130,9 @@ namespace Oddmatics.RozWorld.Net.Packets
             var data = new List<byte>();
 
             data.AddRange(Id.GetBytes());
-            data.AddRange(ClientImplementation.GetBytesByLength(1));
+            data.AddRange(ClientImplementation.GetBytesByLength(1, Encoding.UTF8));
             data.AddRange(ClientVersionRaw.GetBytes());
-            data.AddRange(ServerImplementation.GetBytesByLength(1));
+            data.AddRange(ServerImplementation.GetBytesByLength(1, Encoding.UTF8));
 
             return data.ToArray();
         }

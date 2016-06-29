@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Oddmatics.RozWorld.Net.Packets
 {
@@ -95,7 +96,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             int currentIndex = 2; // Skip first two bytes for ID
             ChatOnly = ByteParse.NextBool(data, ref currentIndex);
             SkinDownloads = ByteParse.NextBool(data, ref currentIndex);
-            Username = ByteParse.NextStringByLength(data, ref currentIndex, 1);
+            Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
             UtcHashTimeDifference = ByteParse.NextInt(data, ref currentIndex);
             PasswordHash = new byte[data.Length - 1 - currentIndex];
             Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - 1 - currentIndex);
@@ -113,7 +114,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="passwordHash">The SHA-256 password hash to check against.</param>
         public LogInRequestPacket(string username, byte[] passwordHash, int utcHashTimeDiff, bool chatOnly, bool skinDownloads)
         {
-            if (!username.LengthWithinRange(1, 128))
+            if (!username.LengthWithinRange(1, 256))
                 throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
 
             if (passwordHash.Length != 32)
@@ -147,7 +148,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             data.AddRange(Id.GetBytes());
             data.AddRange(ChatOnly.GetBytes());
             data.AddRange(SkinDownloads.GetBytes());
-            data.AddRange(Username.GetBytesByLength(1));
+            data.AddRange(Username.GetBytesByLength(1, Encoding.UTF8));
             data.AddRange(UtcHashTimeDifference.GetBytes());
             data.AddRange(PasswordHash);
 

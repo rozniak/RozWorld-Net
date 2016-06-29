@@ -13,6 +13,7 @@ using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 
 namespace Oddmatics.RozWorld.Net.Packets
 {
@@ -84,8 +85,8 @@ namespace Oddmatics.RozWorld.Net.Packets
             ClientCompatible = ByteParse.NextBool(data, ref currentIndex);
             MaxPlayers = ByteParse.NextShort(data, ref currentIndex);
             OnlinePlayers = ByteParse.NextShort(data, ref currentIndex);
-            ServerImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1);
-            ServerName = ByteParse.NextStringByLength(data, ref currentIndex, 1);
+            ServerImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
+            ServerName = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.Unicode);
 
             if (String.IsNullOrWhiteSpace(ServerName))
                 ServerName = "A RozWorld Server";
@@ -99,7 +100,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         public ServerInfoResponsePacket(bool clientCompatible, short maxPlayers, short onlinePlayers, string serverImplementation, string serverName)
         {
             if (!serverName.LengthWithinRange(1, 128) ||
-                !serverImplementation.LengthWithinRange(1, 128))
+                !serverImplementation.LengthWithinRange(1, 256))
                 throw new ArgumentException("ServerInfoResponsePacket.New: Invalid server name/implementation length.");
 
             ClientCompatible = clientCompatible;
@@ -132,8 +133,8 @@ namespace Oddmatics.RozWorld.Net.Packets
             data.AddRange(ClientCompatible.GetBytes());
             data.AddRange(MaxPlayers.GetBytes());
             data.AddRange(OnlinePlayers.GetBytes());
-            data.AddRange(ServerImplementation.GetBytesByLength(1));
-            data.AddRange(ServerName.GetBytesByLength(1));
+            data.AddRange(ServerImplementation.GetBytesByLength(1, Encoding.UTF8));
+            data.AddRange(ServerName.GetBytesByLength(1, Encoding.Unicode));
 
             return data.ToArray();
         }

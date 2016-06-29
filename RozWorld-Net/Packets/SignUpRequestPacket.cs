@@ -13,6 +13,7 @@ using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 
 namespace Oddmatics.RozWorld.Net.Packets
 {
@@ -65,7 +66,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         public SignUpRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 2; // Skip first two bytes for ID
-            Username = ByteParse.NextStringByLength(data, ref currentIndex, 1);
+            Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
             PasswordHash = new byte[data.Length - 1 - currentIndex];
             Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - 1 - currentIndex);
 
@@ -79,7 +80,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="passwordHash">The SHA-256 password hash to use.</param>
         public SignUpRequestPacket(string username, byte[] passwordHash)
         {
-            if (!username.LengthWithinRange(1, 128))
+            if (!username.LengthWithinRange(1, 256))
                 throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
 
             if (passwordHash.Length != 32)
@@ -108,7 +109,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             var data = new List<byte>();
 
             data.AddRange(Id.GetBytes());
-            data.AddRange(Username.GetBytesByLength(1));
+            data.AddRange(Username.GetBytesByLength(1, Encoding.UTF8));
             data.AddRange(PasswordHash);
 
             return data.ToArray();

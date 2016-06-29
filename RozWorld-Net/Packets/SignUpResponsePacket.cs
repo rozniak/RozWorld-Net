@@ -13,6 +13,7 @@ using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 
 namespace Oddmatics.RozWorld.Net.Packets
 {
@@ -71,7 +72,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             int currentIndex = 2; // Skip first two bytes for ID
             Success = ByteParse.NextBool(data, ref currentIndex);
-            Username = ByteParse.NextStringByLength(data, ref currentIndex, 1);
+            Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
             ErrorMessageId = ByteParse.NextByte(data, ref currentIndex);
         }
 
@@ -83,7 +84,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="errorId">The error message ID, if the sign up attempt failed.</param>
         public SignUpResponsePacket(bool success, string username, byte errorId)
         {
-            if (!username.LengthWithinRange(1, 128))
+            if (!username.LengthWithinRange(1, 256))
                 throw new ArgumentException("SignUpResponsePacket.New: Invalid username length.");
 
             ErrorMessageId = errorId;
@@ -111,7 +112,7 @@ namespace Oddmatics.RozWorld.Net.Packets
 
             data.AddRange(Id.GetBytes());
             data.AddRange(Success.GetBytes());
-            data.AddRange(Username.GetBytesByLength(1));
+            data.AddRange(Username.GetBytesByLength(1, Encoding.UTF8));
             data.Add(ErrorMessageId);
 
             return data.ToArray();
