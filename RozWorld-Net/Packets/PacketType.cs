@@ -28,5 +28,22 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// The ID for log in packets.
         /// </summary>
         public const ushort LOG_IN_ID = 3;
+        /// <summary>
+        /// The ID for ping (keepalive) packets.
+        /// </summary>
+        public const ushort PING_ID = 4;
+        /// <summary>
+        /// The ID for chat message packets.
+        /// </summary>
+        public const ushort CHAT_MESSAGE_ID = 5;
+        /// <summary>
+        /// The ID for disconnect packets.
+        /// </summary>
+        public const ushort DISCONNECT_ID = 100;
+        /// <summary>
+        /// The ID for disconnect confirmation packets.
+        /// (These aren't full IPacket classes, the server sends these to confirm a client disconnect safely)
+        /// </summary>
+        public const ushort CONFIRM_DISCONNECT_ID = 101;
     }
 }
