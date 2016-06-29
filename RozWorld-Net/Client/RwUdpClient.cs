@@ -195,6 +195,11 @@ namespace Oddmatics.RozWorld.Net.Client
                     ConnectionError -= packetWatcher_Timeout_SignUp;
                     break;
 
+                case "LogInRequest":
+                    WatchedPackets[requestType].Timeout -= packetWatcher_Timeout_LogIn;
+                    ConnectionError -= packetWatcher_Timeout_LogIn;
+                    break;
+
                 default: return packet; // Should never reach this point
             }
 
@@ -358,6 +363,7 @@ namespace Oddmatics.RozWorld.Net.Client
 
                     break;
 
+                    // LogInResponsePacket
                 case PacketType.LOG_IN_ID:
                     if (LogInResponseReceieved != null && State == ClientState.LoggingIn &&
                         senderEP.Equals(WatchedPackets["LogInRequest"].EndPoint))
