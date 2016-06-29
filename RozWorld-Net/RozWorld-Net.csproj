@@ -57,6 +57,7 @@
     <Compile Include="Packets\PacketTimeout.cs" />
     <Compile Include="Packets\PacketType.cs" />
     <Compile Include="Packets\SenderIs.cs" />
+    <Compile Include="Packets\ServerDisconnectPacket.cs" />
     <Compile Include="Packets\ServerInfoRequestPacket.cs" />
     <Compile Include="Packets\ServerInfoResponsePacket.cs" />
     <Compile Include="Packets\SignUpRequestPacket.cs" />
