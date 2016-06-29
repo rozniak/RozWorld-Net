@@ -107,11 +107,40 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Initialises a new instance of the LogInRequestPacket class with specified properties.
         /// </summary>
+        /// <param name="username">The username to log in as.</param>
+        /// <param name="password">The password to log in with.</param>
         /// <param name="chatOnly">Whether to log on in chat-only mode.</param>
         /// <param name="skinDownloads">Whether skin downloads are accepted.</param>
+        public LogInRequestPacket(string username, string password, bool chatOnly, bool skinDownloads)
+        {
+            if (!username.LengthWithinRange(1, 256))
+                throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
+
+            var sha256 = new SHA256Managed();
+            byte[] passwordHash = sha256.ComputeHash(Encoding.Unicode.GetBytes(password));
+
+            var utcNow = DateTime.UtcNow;
+            var utcMidnight = utcNow.Date;
+            int ticks = (int)(utcNow.Ticks - utcMidnight.Ticks);
+
+            var hashByteList = new List<byte>(passwordHash);
+            hashByteList.AddRange(ticks.GetBytes());
+
+            ChatOnly = chatOnly;
+            PasswordHash = sha256.ComputeHash(hashByteList.ToArray());
+            SkinDownloads = skinDownloads;
+            Username = username;
+            UtcHashTimeDifference = ticks;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the LogInRequestPacket class with specified properties.
+        /// </summary>
         /// <param name="username">The username to log in as.</param>
-        /// <param name="utcHashTimeDiff">The time in ticks of the hashed password.</param>
         /// <param name="passwordHash">The SHA-256 password hash to check against.</param>
+        /// <param name="utcHashTimeDiff">The time difference in ticks between midnight UTC and the UTC hash time.</param>
+        /// <param name="chatOnly">Whether to log on in chat-only mode.</param>
+        /// <param name="skinDownloads">Whether skin downloads are accepted.</param>
         public LogInRequestPacket(string username, byte[] passwordHash, int utcHashTimeDiff, bool chatOnly, bool skinDownloads)
         {
             if (!username.LengthWithinRange(1, 256))

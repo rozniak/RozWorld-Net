@@ -13,6 +13,7 @@ using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Oddmatics.RozWorld.Net.Packets
@@ -77,14 +78,28 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Initialises a new instance of the SignUpRequestPacket with specified properties.
         /// </summary>
         /// <param name="username">The username to use.</param>
-        /// <param name="passwordHash">The SHA-256 password hash to use.</param>
+        /// <param name="password">The password to use.</param>
+        public SignUpRequestPacket(string username, string password)
+        {
+            if (!username.LengthWithinRange(1, 256))
+                throw new ArgumentException("SignUpRequestPacket.New: Invalid username length.");
+
+            Username = username;
+            PasswordHash = new SHA256Managed().ComputeHash(Encoding.Unicode.GetBytes(password));
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the SignUpRequestPacket with specified properties.
+        /// </summary>
+        /// <param name="username">The username to use.</param>
+        /// <param name="passwordHash">The SHA-256 hashed password.</param>
         public SignUpRequestPacket(string username, byte[] passwordHash)
         {
             if (!username.LengthWithinRange(1, 256))
-                throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
+                throw new ArgumentException("SignUpRequestPacket.New: Invalid username length.");
 
             if (passwordHash.Length != 32)
-                throw new ArgumentException("LogInRequestPacket.New: Password hash incorrect length - use SHA256.");
+                throw new ArgumentException("SignUpRequestPacket.New: Invalid password hash bytes supplied.");
 
             Username = username;
             PasswordHash = passwordHash;
