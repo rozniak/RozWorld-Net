@@ -292,7 +292,7 @@ namespace Oddmatics.RozWorld.Net.Client
             IPacket packet = KillReceive("LogInRequest");
 
             if (PacketTimeout != null && sender is PacketWatcher)
-                PacketTimeout(this, packet);
+                PacketTimeout(this, new PacketEventArgs(packet));
         }
 
         /// <summary>
@@ -314,7 +314,7 @@ namespace Oddmatics.RozWorld.Net.Client
             IPacket packet = KillReceive("SignUpRequest");
 
             if (PacketTimeout != null && sender is PacketWatcher)
-                PacketTimeout(this, packet);
+                PacketTimeout(this, new PacketEventArgs(packet));
         }
 
         /// <summary>
@@ -348,7 +348,8 @@ namespace Oddmatics.RozWorld.Net.Client
                     // ServerInfoResponsePacket
                 case PacketType.SERVER_INFO_ID:
                     if (InfoResponseReceived != null && State == ClientState.Broadcasting)
-                        InfoResponseReceived(this, new ServerInfoResponsePacket(rxData, senderEP));
+                        InfoResponseReceived(this,
+                            new PacketEventArgs(new ServerInfoResponsePacket(rxData, senderEP)));
                     break;
 
                     // SignUpResponsePacket
@@ -358,7 +359,8 @@ namespace Oddmatics.RozWorld.Net.Client
                     {
                         State = ClientState.Idle;
                         KillReceive("SignUpRequest");
-                        SignUpResponseReceived(this, new SignUpResponsePacket(rxData, senderEP));
+                        SignUpResponseReceived(this,
+                            new PacketEventArgs(new SignUpResponsePacket(rxData, senderEP)));
                     }
 
                     break;
@@ -381,7 +383,7 @@ namespace Oddmatics.RozWorld.Net.Client
                             State = ClientState.Idle;
 
                         if (LogInResponseReceieved != null)
-                            LogInResponseReceieved(this, logInPacket);
+                            LogInResponseReceieved(this, new PacketEventArgs(logInPacket));
                     }
 
                     break;

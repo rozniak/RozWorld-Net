@@ -116,19 +116,22 @@ namespace Oddmatics.RozWorld.Net.Server
                     // ServerInfoRequestPacket
                 case PacketType.SERVER_INFO_ID:
                     if (InfoRequestReceived != null)
-                        InfoRequestReceived(this, new ServerInfoRequestPacket(rxData, senderEP));
+                        InfoRequestReceived(this,
+                            new PacketEventArgs(new ServerInfoRequestPacket(rxData, senderEP)));
                     break;
 
                     // SignUpRequestPacket
                 case PacketType.SIGN_UP_ID:
                     if (SignUpRequestReceived != null)
-                        SignUpRequestReceived(this, new SignUpRequestPacket(rxData, senderEP));
+                        SignUpRequestReceived(this,
+                            new PacketEventArgs(new SignUpRequestPacket(rxData, senderEP)));
                     break;
 
                     // LogInRequestPacket
                 case PacketType.LOG_IN_ID:
                     if (LogInRequestReceived != null)
-                        LogInRequestReceived(this, new LogInRequestPacket(rxData, senderEP));
+                        LogInRequestReceived(this,
+                            new PacketEventArgs(new LogInRequestPacket(rxData, senderEP)));
                     break;
 
                 case 0:
