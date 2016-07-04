@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Timers;
 
 namespace Oddmatics.RozWorld.Net.Client
@@ -229,8 +230,9 @@ namespace Oddmatics.RozWorld.Net.Client
                 finalHash.AddRange(passwordHash);
                 finalHash.AddRange(hashTickTime.GetBytes());
 
-                var packet = new LogInRequestPacket(username, finalHash.ToArray(), hashTickTime,
-                    chatOnly, skinDownloads);
+                var packet = new LogInRequestPacket(username,
+                    new SHA256Managed().ComputeHash(finalHash.ToArray()),
+                    hashTickTime, chatOnly, skinDownloads);
                 var packetWatcher = new PacketWatcher(packet, destination, this);
 
                 State = ClientState.LoggingIn;
