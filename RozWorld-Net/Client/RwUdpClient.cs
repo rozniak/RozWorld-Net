@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using System.Text;
 using System.Timers;
 
 namespace Oddmatics.RozWorld.Net.Client
@@ -213,14 +214,18 @@ namespace Oddmatics.RozWorld.Net.Client
         /// Sends a log in request packet to a remote server.
         /// </summary>
         /// <param name="username">The username to log in with.</param>
-        /// <param name="passwordHash">The SHA-256 hashed password.</param>
+        /// <param name="password">The password to log in with.</param>
         /// <param name="chatOnly">Whether to log in as a chat only client.</param>
         /// <param name="skinDownloads">Whether to enable skin downloading from the server.</param>
+        /// <param name="destination">The IPEndPoint of the remote server.</param>
         /// <returns>True if a log in request was sent.</returns>
-        public bool LogInToServer(string username, byte[] passwordHash, bool chatOnly, bool skinDownloads, IPEndPoint destination)
+        public bool LogInToServer(string username, string password, bool chatOnly, bool skinDownloads, IPEndPoint destination)
         {
             if (State == ClientState.Idle)
             {
+                var sha256 = new SHA256Managed();
+                byte[] passwordHash = sha256.ComputeHash(Encoding.Unicode.GetBytes(password));
+
                 var finalHash = new List<byte>();
                 DateTime currentUtc = DateTime.UtcNow;
                 DateTime midnightUtc = new DateTime(currentUtc.Year, currentUtc.Month,
@@ -231,7 +236,7 @@ namespace Oddmatics.RozWorld.Net.Client
                 finalHash.AddRange(hashTickTime.GetBytes());
 
                 var packet = new LogInRequestPacket(username,
-                    new SHA256Managed().ComputeHash(finalHash.ToArray()),
+                    sha256.ComputeHash(finalHash.ToArray()),
                     hashTickTime, chatOnly, skinDownloads);
                 var packetWatcher = new PacketWatcher(packet, destination, this);
 
@@ -262,13 +267,14 @@ namespace Oddmatics.RozWorld.Net.Client
         /// Sends a sign up request packet to a remote server.
         /// </summary>
         /// <param name="username">The username to sign up with.</param>
-        /// <param name="passwordHash">The SHA-256 hashed password.</param>
+        /// <param name="password">The password to sign up with.</param>
         /// <param name="destination">The IPEndPoint of the remote server.</param>
         /// <returns>True if a sign up request was sent.</returns>
-        public bool SignUpToServer(string username, byte[] passwordHash, IPEndPoint destination)
+        public bool SignUpToServer(string username, string password, IPEndPoint destination)
         {
             if (State == ClientState.Idle)
             {
+                byte[] passwordHash = new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(password));
                 var packet = new SignUpRequestPacket(username, passwordHash);
                 var packetWatcher = new PacketWatcher(packet, destination, this);
 
