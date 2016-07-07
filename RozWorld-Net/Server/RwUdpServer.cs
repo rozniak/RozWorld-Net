@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Timers;
 
 namespace Oddmatics.RozWorld.Net.Server
 {
@@ -24,6 +25,11 @@ namespace Oddmatics.RozWorld.Net.Server
     /// </summary>
     public class RwUdpServer
     {
+        /// <summary>
+        /// The time in milliseconds with no network activity in which a connected client is deemed disconnected.
+        /// </summary>
+        public const ushort CLIENT_TIMEOUT_TIME = 15000;
+
         /// <summary>
         /// The default port for RozWorld servers.
         /// </summary>
@@ -36,14 +42,29 @@ namespace Oddmatics.RozWorld.Net.Server
         public bool Active { get; private set; }
 
         /// <summary>
+        /// Gets the amount of currently connected clients to this RwUdpServer.
+        /// </summary>
+        public int AmountOfConnections { get { return ConnectedClients.Count; } }
+
+        /// <summary>
         /// The UdpClient instance for peforming the networking operations.
         /// </summary>
         private UdpClient Client;
 
         /// <summary>
+        /// The currently connected clients contained alongside their individual IPEndPoints.
+        /// </summary>
+        private Dictionary<IPEndPoint, ConnectedClient> ConnectedClients;
+
+        /// <summary>
         /// The IPEndPoint for networking operations.
         /// </summary>
         private IPEndPoint EndPoint;
+
+        /// <summary>
+        /// Gets the Timer that advances timeout counts for connected clients.
+        /// </summary>
+        public Timer TimeoutTimer { get; private set; }
 
 
         /// <summary>
@@ -68,6 +89,9 @@ namespace Oddmatics.RozWorld.Net.Server
         /// <param name="port">The port number to use.</param>
         public RwUdpServer(int port)
         {
+            TimeoutTimer = new Timer(10);
+            TimeoutTimer.Enabled = true;
+            TimeoutTimer.Start();
             Client = new UdpClient(port);
             EndPoint = new IPEndPoint(IPAddress.Any, port);
         }
@@ -85,6 +109,19 @@ namespace Oddmatics.RozWorld.Net.Server
             }
             else
                 throw new InvalidOperationException("RwUdpServer.Begin: Already started.");
+        }
+
+        /// <summary>
+        /// Gets a ConnectedClient instance from this RwUdpServer by its IPEndPoint.
+        /// </summary>
+        /// <param name="clientEP">The IPEndPoint of the ConnectedClient.</param>
+        /// <returns>The ConnectedClient's instance if the IPEndPoint key matched, null otherwise.</returns>
+        public ConnectedClient GetConnectedClient(IPEndPoint clientEP)
+        {
+            if (ConnectedClients.ContainsKey(clientEP))
+                return ConnectedClients[clientEP];
+
+            return null;
         }
 
         /// <summary>

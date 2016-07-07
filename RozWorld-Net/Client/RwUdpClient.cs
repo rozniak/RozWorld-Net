@@ -29,7 +29,7 @@ namespace Oddmatics.RozWorld.Net.Client
     public class RwUdpClient
     {
         /// <summary>
-        /// The time in milliseconds until the remote server is deemed unreachable.
+        /// The time in milliseconds with no network activity in which the remote server is deemed unreachable.
         /// </summary>
         public const ushort SERVER_TIMEOUT_TIME = 15000;
 
@@ -61,12 +61,12 @@ namespace Oddmatics.RozWorld.Net.Client
         private ushort SinceServerPacket;
 
         /// <summary>
-        /// The current ClientState of this RwUdpClient.
+        /// Gets the current ClientState of this RwUdpClient.
         /// </summary>
         public ClientState State { get; private set; }
 
         /// <summary>
-        /// The Timer that advances timeout counts on important packets and time since last server response.
+        /// Gets the Timer that advances timeout counts on important packets and time since last server response.
         /// </summary>
         public Timer TimeoutTimer { get; private set; }
 
