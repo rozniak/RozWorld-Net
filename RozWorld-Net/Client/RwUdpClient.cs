@@ -157,7 +157,8 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <param name="serverImplementation">The server implementation to look for (use * for a wildcard).</param>
         public void BroadcastServerScan(string clientImplementation, ushort versionRaw, string serverImplementation)
         {
-            if (State == ClientState.Idle || State == ClientState.Broadcasting)
+            if (State == ClientState.Idle || State == ClientState.Broadcasting
+                && Active)
             {
                 var packet = new ServerInfoRequestPacket(clientImplementation,
                     versionRaw, serverImplementation);
@@ -221,7 +222,7 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <returns>True if a log in request was sent.</returns>
         public bool LogInToServer(string username, string password, bool chatOnly, bool skinDownloads, IPEndPoint destination)
         {
-            if (State == ClientState.Idle)
+            if (State == ClientState.Idle && Active)
             {
                 var sha256 = new SHA256Managed();
                 byte[] passwordHash = sha256.ComputeHash(Encoding.Unicode.GetBytes(password));
@@ -272,7 +273,7 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <returns>True if a sign up request was sent.</returns>
         public bool SignUpToServer(string username, string password, IPEndPoint destination)
         {
-            if (State == ClientState.Idle)
+            if (State == ClientState.Idle && Active)
             {
                 byte[] passwordHash = new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(password));
                 var packet = new SignUpRequestPacket(username, passwordHash);
@@ -288,6 +289,23 @@ namespace Oddmatics.RozWorld.Net.Client
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Stops networking operations, sending a disconnection packet if necessary beforehand.
+        /// </summary>
+        public void Stop()
+        {
+            if (State != ClientState.Connected)
+            {
+                WatchedPackets.Clear(); // This is pretty crappy for now - work on detaching events nicely later
+                State = ClientState.Idle;
+                Active = false;
+            }
+            else
+            {
+                // TODO: Send disconnect packets here
+            }
         }
 
 
