@@ -9,6 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using Oddmatics.RozWorld.Net.Packets;
 using System;
 using System.Net;
 using System.Timers;
@@ -21,7 +22,12 @@ namespace Oddmatics.RozWorld.Net.Server
     public class ConnectedClient
     {
         /// <summary>
-        /// 
+        /// Gets whether this ConnectedClient is alive or not.
+        /// </summary>
+        public bool Alive { get; private set; }
+
+        /// <summary>
+        /// The IPEndPoint of the client.
         /// </summary>
         public IPEndPoint EndPoint { get; private set; }
 
@@ -31,29 +37,100 @@ namespace Oddmatics.RozWorld.Net.Server
         private RwUdpServer Parent;
 
         /// <summary>
-        /// The time in milliseconds since the last packet was receieved from this ConnectedClient.
+        /// The time in milliseconds since the last packet was receieved from the client.
         /// </summary>
-        private ushort SinceLastPacket;
+        private ushort SinceLastPacketReceived;
+
+        /// <summary>
+        /// The time in milliseconds since the last packet was sent to the client.
+        /// </summary>
+        private ushort SinceLastPacketSent;
 
 
+        /// <summary>
+        /// Occurs when the last packet received's time exceeds the timeout requirement to drop the connection for this client.
+        /// </summary>
+        public event EventHandler TimedOut;
 
+
+        /// <summary>
+        /// Initialises a new instance of the ConnectedClient class with a specified IPEndPoint of the client and a parent RwUdpServer.
+        /// </summary>
+        /// <param name="clientEP">The IPEndPoint of the client.</param>
+        /// <param name="parent">The parent RwUdpServer of this ConnectedClient.</param>
         public ConnectedClient(IPEndPoint clientEP, RwUdpServer parent)
         {
+            if (clientEP == null || parent == null)
+                throw new ArgumentException("ConnectedClient.New: Null arguments are not allowed.");
+
             Parent = parent;
-
-            if (Parent.GetConnectedClient(clientEP) != this)
-                throw new ArgumentException("ConnectedClient.New: The clientEP specified for this instance does not match the parent's reference through the same IPEndPoint value.");
-
-            Parent.TimeoutTimer.Elapsed += new System.Timers.ElapsedEventHandler(TimeoutTimer_Elapsed);
+            EndPoint = clientEP;
         }
 
+
+        /// <summary>
+        /// Enables this ConnectedClient.
+        /// </summary>
+        public void Begin()
+        {
+            if (Alive)
+                throw new InvalidOperationException("ConnectedClient.Begin: Already started.");
+
+            if (Parent.GetConnectedClient(EndPoint) != this)
+                throw new ArgumentException("ConnectedClient.Begin: The clientEP specified for this instance does not match the parent's reference through the same IPEndPoint value.");
+
+            Parent.TimeoutTimer.Elapsed += new ElapsedEventHandler(TimeoutTimer_Elapsed);
+            Alive = true;
+        }
+
+        /// <summary>
+        /// Resets the timeout counter.
+        /// </summary>
+        public void ResetTimeoutCounter()
+        {
+            if (Alive)
+                SinceLastPacketReceived = 0;
+            else
+                throw new InvalidOperationException("ConnectedClient.ResetTimeoutCounter: Cannot reset timeout for a timed out client.");
+        }
+
+        /// <summary>
+        /// Sends the specified IPacket to the client.
+        /// </summary>
+        /// <param name="packet">The IPacket to send.</param>
+        public void SendPacket(IPacket packet)
+        {
+            if (Alive)
+            {
+                Parent.Send(packet, EndPoint);
+                SinceLastPacketSent = 0;
+            }
+        }
+
+
+        /// <summary>
+        /// [Parent.TimeoutTimer.Elapsed] Timeout timer ticked.
+        /// </summary>
         private void TimeoutTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            SinceLastPacket += (ushort)((Timer)sender).Interval;
+            var timer = (Timer)sender;
+            SinceLastPacketReceived += (ushort)timer.Interval;
+            SinceLastPacketSent += (ushort)timer.Interval;
 
-            if (SinceLastPacket > RwUdpServer.CLIENT_TIMEOUT_TIME)
+            if (SinceLastPacketSent > PacketTimeout.SEND_TIMEOUT_PING)
             {
-                // Fire timeout event - this client has timed out
+                SendPacket(new PingPacket());
+            }
+
+            if (SinceLastPacketReceived > RwUdpServer.CLIENT_TIMEOUT_TIME)
+            {
+                timer.Stop();
+                timer.Elapsed -= TimeoutTimer_Elapsed; // Detach this event handler
+
+                Alive = false;
+
+                if (TimedOut != null)
+                    TimedOut(this, EventArgs.Empty);
             }
         }
     }

@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.Net.Packets.Event.PacketEventHandler -- RozWorld Network Packet Receieved Delegate
+ * Oddmatics.RozWorld.Net.Packets.Event.PacketEvent -- RozWorld Network Packet Receieved Event
  *
  * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>

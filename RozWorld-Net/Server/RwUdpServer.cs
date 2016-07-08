@@ -11,6 +11,7 @@
 
 using Oddmatics.RozWorld.Net.Packets;
 using Oddmatics.RozWorld.Net.Packets.Event;
+using Oddmatics.RozWorld.Net.Server.Event;
 using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
@@ -67,6 +68,8 @@ namespace Oddmatics.RozWorld.Net.Server
         public Timer TimeoutTimer { get; private set; }
 
 
+        public event ClientDropEventHandler ClientDropped;
+
         /// <summary>
         /// Occurs when a server information request has been received.
         /// </summary>
@@ -93,9 +96,30 @@ namespace Oddmatics.RozWorld.Net.Server
             TimeoutTimer.Enabled = true;
             TimeoutTimer.Start();
             Client = new UdpClient(port);
+            ConnectedClients = new Dictionary<IPEndPoint, ConnectedClient>();
             EndPoint = new IPEndPoint(IPAddress.Any, port);
         }
 
+
+        /// <summary>
+        /// Creates and adds a new ConnectedClient to the collection in this RwUdpServer.
+        /// </summary>
+        /// <param name="clientEP">The IPEndPoint of the ConnectedClient to make.</param>
+        /// <returns>True if the ConnectedClient was made and added (will return false if the IPEndPoint is already connected).</returns>
+        public bool AddClient(IPEndPoint clientEP)
+        {
+            if (ConnectedClients.ContainsKey(clientEP))
+                return false;
+
+            var newClient = new ConnectedClient(clientEP, this);
+            newClient.TimedOut += new EventHandler(ConnectedClient_TimedOut);
+
+            ConnectedClients.Add(clientEP, newClient);
+
+            newClient.Begin();
+
+            return true;
+        }
 
         /// <summary>
         /// Begins networking operations and starts listening.
@@ -109,6 +133,20 @@ namespace Oddmatics.RozWorld.Net.Server
             }
             else
                 throw new InvalidOperationException("RwUdpServer.Begin: Already started.");
+        }
+
+        /// <summary>
+        /// Drops the ConnectedClient instance associated with the given IPEndPoint.
+        /// Note: This should be done after performing proper disconnection, and not act as a substitute instead.
+        /// </summary>
+        /// <param name="clientEP">The IPEndPoint of the ConnectedClient.</param>
+        /// <returns>True if the ConnectedClient was found and dropped.</returns>
+        public bool DropClient(IPEndPoint clientEP)
+        {
+            if (ConnectedClients.ContainsKey(clientEP))
+                ConnectedClients.Remove(clientEP);
+
+            return false;
         }
 
         /// <summary>
@@ -135,6 +173,21 @@ namespace Oddmatics.RozWorld.Net.Server
             Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
         }
 
+
+        /// <summary>
+        /// [ConnectedClient.TimedOut] Connected client timed out.
+        /// </summary>
+        private void ConnectedClient_TimedOut(object sender, EventArgs e)
+        {
+            var client = (ConnectedClient)sender;
+
+            client.TimedOut -= ConnectedClient_TimedOut; // Detach this event handler
+
+            DropClient(client.EndPoint);
+
+            if (ClientDropped != null)
+                ClientDropped(this, new ClientDropEventArgs(client));
+        }
 
         /// <summary>
         /// [BeginReceive Callback] UDP Packet Received.
@@ -169,6 +222,13 @@ namespace Oddmatics.RozWorld.Net.Server
                     if (LogInRequestReceived != null)
                         LogInRequestReceived(this,
                             new PacketEventArgs(new LogInRequestPacket(rxData, senderEP)));
+                    break;
+
+                    // Generic ping (handle these internally)
+                case PacketType.PING_ID:
+                    if (ConnectedClients.ContainsKey(senderEP))
+                        ConnectedClients[senderEP].ResetTimeoutCounter();
+
                     break;
 
                 case 0:

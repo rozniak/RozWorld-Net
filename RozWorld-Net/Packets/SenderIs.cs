@@ -23,6 +23,10 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Represents that a server should have sent this packet.
         /// </summary>
-        Server
+        Server,
+        /// <summary>
+        /// Represents that either the client or the server could have sent this packet.
+        /// </summary>
+        Either
     }
 }

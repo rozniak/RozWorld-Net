@@ -37,6 +37,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public const ushort RESEND_TIMEOUT_MOVEMENTS = 200;
 
         /// <summary>
+        /// The time in milliseconds with no network interaction before a keepalive ping should be transmitted.
+        /// </summary>
+        public const ushort SEND_TIMEOUT_PING = 2000;
+
+        /// <summary>
         /// The time in milliseconds until a server endpoint is deemed unreachable.
         /// </summary>
         public const ushort TOTAL_TIMEOUT = 15000;
