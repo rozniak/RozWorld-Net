@@ -435,6 +435,14 @@ namespace Oddmatics.RozWorld.Net.Client
 
                     break;
 
+                    // Ping packet
+                case PacketType.PING_ID:
+                    if (State == ClientState.Connected &&
+                        senderEP.Equals(EndPoint))
+                        SinceLastPacketReceived = 0;
+
+                    break;
+
                 case 0:
                 default:
                     // Bad packet
