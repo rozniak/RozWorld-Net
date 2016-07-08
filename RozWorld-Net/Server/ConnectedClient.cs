@@ -118,9 +118,7 @@ namespace Oddmatics.RozWorld.Net.Server
             SinceLastPacketSent += (ushort)timer.Interval;
 
             if (SinceLastPacketSent > PacketTimeout.SEND_TIMEOUT_PING)
-            {
                 SendPacket(new PingPacket());
-            }
 
             if (SinceLastPacketReceived > RwUdpServer.CLIENT_TIMEOUT_TIME)
             {

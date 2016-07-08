@@ -58,7 +58,12 @@ namespace Oddmatics.RozWorld.Net.Client
         /// <summary>
         /// The time in milliseconds since the last packet was receieved from the connected server.
         /// </summary>
-        private ushort SinceServerPacket;
+        private ushort SinceLastPacketReceived;
+
+        /// <summary>
+        /// The time in milliseconds since the last packet was sent to the connected server.
+        /// </summary>
+        private ushort SinceLastPacketSent;
 
         /// <summary>
         /// Gets the current ClientState of this RwUdpClient.
@@ -265,6 +270,21 @@ namespace Oddmatics.RozWorld.Net.Client
         }
 
         /// <summary>
+        /// Sends an IPacket to the currently connected server and resets the ping timer for this client.
+        /// </summary>
+        /// <param name="packet">The IPacket to send.</param>
+        private void SendToServer(IPacket packet)
+        {
+            if (State == ClientState.Connected)
+            {
+                Send(packet, EndPoint);
+                SinceLastPacketSent = 0;
+            }
+            else
+                throw new InvalidOperationException("RwUdpClient.SendToServer: Not connected to a server right now, use Send() instead.");
+        }
+
+        /// <summary>
         /// Sends a sign up request packet to a remote server.
         /// </summary>
         /// <param name="username">The username to sign up with.</param>
@@ -298,6 +318,7 @@ namespace Oddmatics.RozWorld.Net.Client
         {
             if (State != ClientState.Connected)
             {
+                // TODO: Update this ¬¬¬¬
                 WatchedPackets.Clear(); // This is pretty crappy for now - work on detaching events nicely later
                 State = ClientState.Idle;
                 Active = false;
@@ -434,9 +455,13 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         private void TimeoutTimer_Elapsed_ServerConnection(object sender, ElapsedEventArgs e)
         {
-            SinceServerPacket += (ushort)TimeoutTimer.Interval;
+            SinceLastPacketReceived += (ushort)TimeoutTimer.Interval;
+            SinceLastPacketSent += (ushort)TimeoutTimer.Interval;
 
-            if (SinceServerPacket > SERVER_TIMEOUT_TIME)
+            if (SinceLastPacketSent > Packets.PacketTimeout.SEND_TIMEOUT_PING)
+                SendToServer(new PingPacket());
+
+            if (SinceLastPacketReceived > SERVER_TIMEOUT_TIME)
             {
                 TimeoutTimer.Elapsed -= TimeoutTimer_Elapsed_ServerConnection;
                 State = ClientState.Idle;
