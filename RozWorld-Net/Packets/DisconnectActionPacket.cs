@@ -19,8 +19,13 @@ namespace Oddmatics.RozWorld.Net.Packets
     /// <summary>
     /// [CLIENT --> SERVER] Represents a disconnect action packet.
     /// </summary>
-    public class DisconnectActionPacket : IPacket
+    public class DisconnectActionPacket : IAcknowledgeable
     {
+        /// <summary>
+        /// Gets the acknowledgement ID for this DisconnectActionPacket.
+        /// </summary>
+        public ushort AckId { get; private set; }
+
         /// <summary>
         /// Gets the ID of this DisconnectActionPacket.
         /// </summary>
@@ -61,6 +66,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             int currentIndex = 2;
             Reason = ByteParse.NextByte(data, ref currentIndex);
+            AckId = ByteParse.NextUShort(data, ref currentIndex);
 
             SenderEndPoint = senderEndPoint;
         }
@@ -69,9 +75,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Initialises a new instance of the DisconnectActionPacket class with a specified reason.
         /// </summary>
         /// <param name="reason">The reason for the disconnect.</param>
-        public DisconnectActionPacket(byte reason)
+        /// <param name="ackId">The acknowledgement ID to use.</param>
+        public DisconnectActionPacket(byte reason, ushort ackId)
         {
             Reason = reason;
+            AckId = ackId;
         }
 
 
@@ -81,7 +89,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <returns>The DisconnectActionPacket this method creates, cast as an object.</returns>
         public object Clone()
         {
-            return new DisconnectActionPacket(Reason);
+            return new DisconnectActionPacket(Reason, AckId);
         }
 
         /// <summary>
@@ -94,6 +102,7 @@ namespace Oddmatics.RozWorld.Net.Packets
 
             data.AddRange(Id.GetBytes());
             data.Add(Reason);
+            data.AddRange(AckId.GetBytes());
 
             return data.ToArray();
         }
