@@ -61,18 +61,9 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         public const byte KICKED = 10;
         /// <summary>
-        /// The mods installed on the client do not match those on the server.
-        /// (Client may require downloading of mods that the server has but client doesn't)
-        /// </summary>
-        public const byte MODS_INCOMPATIBLE = 11;
-        /// <summary>
-        /// The client crashed but still managed to issue a disconnect.
-        /// </summary>
-        public const byte CLIENT_CRASH = 12;
-        /// <summary>
         /// The server is down for maintenance.
         /// </summary>
-        public const byte SERVER_MAINTENANCE = 13;
+        public const byte SERVER_MAINTENANCE = 11;
         /// <summary>
         /// The network function has not been fully implemented.
         /// </summary>

@@ -47,6 +47,8 @@
   <ItemGroup>
     <Compile Include="Client\ClientState.cs" />
     <Compile Include="Packets\ClientDisconnectPacket.cs" />
+    <Compile Include="Packets\DisconnectActionPacket.cs" />
+    <Compile Include="Packets\DisconnectReason.cs" />
     <Compile Include="Packets\Event\PacketEvent.cs" />
     <Compile Include="Client\PacketWatcher.cs" />
     <Compile Include="Client\RwUdpClient.cs" />
