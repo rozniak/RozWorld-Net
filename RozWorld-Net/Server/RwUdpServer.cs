@@ -68,6 +68,9 @@ namespace Oddmatics.RozWorld.Net.Server
         public Timer TimeoutTimer { get; private set; }
 
 
+        /// <summary>
+        /// Occurs when a client timeouts and is dropped.
+        /// </summary>
         public event ClientDropEventHandler ClientDropped;
 
         /// <summary>

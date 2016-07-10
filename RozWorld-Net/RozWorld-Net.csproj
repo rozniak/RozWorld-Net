@@ -48,6 +48,7 @@
     <Compile Include="Client\ClientState.cs" />
     <Compile Include="Packets\AcknowledgePacket.cs" />
     <Compile Include="Packets\ChatActionPacket.cs" />
+    <Compile Include="Packets\ChatUpdatePacket.cs" />
     <Compile Include="Packets\ClientDisconnectPacket.cs" />
     <Compile Include="Packets\DisconnectActionPacket.cs" />
     <Compile Include="Packets\DisconnectReason.cs" />

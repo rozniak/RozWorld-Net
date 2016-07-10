@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.Net.Packets.LogInRequestPacket -- RozWorld Chat Message Action Packet
+ * Oddmatics.RozWorld.Net.Packets.ChatUpdatePacket -- RozWorld Chat Message Update Packet
  *
  * This source-code is part of the netcode library for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
@@ -18,22 +18,22 @@ using System.Text;
 namespace Oddmatics.RozWorld.Net.Packets
 {
     /// <summary>
-    /// [CLIENT --> SERVER] Represents a chat message action packet.
+    /// [SERVER --> CLIENT] Represents a chat message action packet.
     /// </summary>
-    public class ChatActionPacket : IAcknowledgeable, IPlayerPacket
+    public class ChatUpdatePacket : IAcknowledgeable, IPlayerPacket
     {
         /// <summary>
-        /// Gets the acknowledgement ID for this ChatActionPacket.
+        /// Gets the acknowledgement ID for this ChatUpdatePacket.
         /// </summary>
         public ushort AckId { get; private set; }
 
         /// <summary>
-        /// Gets the ID of this ChatActionPacket.
+        /// Gets the ID of this ChatUpdatePacket.
         /// </summary>
         public ushort Id { get { return PacketType.CHAT_MESSAGE_ID; } }
 
         /// <summary>
-        /// Gets the maximum send attempts for this ChatActionPacket.
+        /// Gets the maximum send attempts for this ChatUpdatePacket.
         /// </summary>
         public byte MaxSendAttempts { get { return PacketTimeout.RESEND_ATTEMPTS_MOVEMENTS; } }
 
@@ -43,32 +43,32 @@ namespace Oddmatics.RozWorld.Net.Packets
         public string Message { get; private set; }
 
         /// <summary>
-        /// Gets the player ID associated with this ChatActionPacket.
+        /// Gets the player ID associated with this ChatUpdatePacket.
         /// </summary>
         public ushort PlayerId { get; private set; }
 
         /// <summary>
-        /// Gets the sender of this ChatActionPacket.
+        /// Gets the sender of this ChatUpdatePacket.
         /// </summary>
-        public SenderIs Sender { get { return SenderIs.Client; } }
+        public SenderIs Sender { get { return SenderIs.Server; } }
 
         /// <summary>
-        /// Gets the sender's IPEndPoint of this ChatActionPacket.
+        /// Gets the sender's IPEndPoint of this ChatUpdatePacket.
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
 
         /// <summary>
         /// Gets the time in milliseconds before a resend attempt is made.
         /// </summary>
-        public ushort TimeUntilResend { get { return PacketTimeout.RESEND_TIMEOUT_AUTH; } }
+        public ushort TimeUntilResend { get { return PacketTimeout.RESEND_ATTEMPTS_MOVEMENTS; } }
 
 
         /// <summary>
-        /// Initialises a new instance of the ChatActionPacket class using network data. 
+        /// Initialises a new instance of the ChatUpdatePacket class using network data.
         /// </summary>
-        /// <param name="data">The network data describing this ChatActionPacket.</param>
+        /// <param name="data">The network data describing this ChatUpdatePacket.</param>
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
-        public ChatActionPacket(byte[] data, IPEndPoint senderEndPoint)
+        public ChatUpdatePacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 2; // Skip first two bytes for ID
             AckId = ByteParse.NextUShort(data, ref currentIndex);
@@ -80,15 +80,15 @@ namespace Oddmatics.RozWorld.Net.Packets
         }
 
         /// <summary>
-        /// Initialises a new instance of the ChatActionPacket class with specified properties.
+        /// Initialises a new instance of the ChatUpdatePacket class with specified properties.
         /// </summary>
         /// <param name="message">The chat message to send.</param>
-        /// <param name="playerId">The ID of the player sending the message.</param>
+        /// <param name="playerId">The ID of the player to update the message with.</param>
         /// <param name="ackId">The acknowledgement ID to use.</param>
-        public ChatActionPacket(string message, ushort playerId, ushort ackId)
+        public ChatUpdatePacket(string message, ushort playerId, ushort ackId)
         {
-            if (!message.LengthWithinRange(1, 256))
-                throw new ArgumentException("ChatActionPacket.New: Invalid chat message length.");
+            if (!message.LengthWithinRange(1, 300))
+                throw new ArgumentException("ChatUpdatePacket.New: Invalid chat message length.");
 
             Message = message;
             PlayerId = playerId;
@@ -97,18 +97,18 @@ namespace Oddmatics.RozWorld.Net.Packets
 
 
         /// <summary>
-        /// Creates an exact copy of this ChatActionPacket.
+        /// Creates an exact copy of this ChatUpdatePacket.
         /// </summary>
-        /// <returns>The ChatActionPacket this method creates, cast as an object.</returns>
+        /// <returns>The ChatUpdatePacket this method creates, cast as an object.</returns>
         public object Clone()
         {
             return new ChatActionPacket(Message, PlayerId, AckId);
         }
 
         /// <summary>
-        /// Gets the data in this ChatActionPacket as a byte array.
+        /// Gets the data in this ChatUpdatePacket as a byte array.
         /// </summary>
-        /// <returns>A byte array containing the data in this ChatActionPacket.</returns>
+        /// <returns>A byte array containing the data in this ChatUpdatePacket.</returns>
         public byte[] GetBytes()
         {
             var data = new List<byte>();
