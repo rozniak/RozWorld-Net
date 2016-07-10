@@ -64,7 +64,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
         public DisconnectActionPacket(byte[] data, IPEndPoint senderEndPoint)
         {
-            int currentIndex = 2;
+            int currentIndex = 2; // Skip first two bytes for ID
             Reason = ByteParse.NextByte(data, ref currentIndex);
             AckId = ByteParse.NextUShort(data, ref currentIndex);
 
@@ -101,8 +101,8 @@ namespace Oddmatics.RozWorld.Net.Packets
             var data = new List<byte>();
 
             data.AddRange(Id.GetBytes());
-            data.Add(Reason);
             data.AddRange(AckId.GetBytes());
+            data.Add(Reason);
 
             return data.ToArray();
         }

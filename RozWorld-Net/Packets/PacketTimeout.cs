@@ -24,7 +24,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// The time in milliseconds until a resend attempt is made for authentication packets.
         /// </summary>
-        public const ushort RESEND_TIMEOUT_AUTH = 300;
+        public const ushort RESEND_TIMEOUT_AUTH = 1000;
 
         /// <summary>
         /// The amount of resend attempts to make for movement packets.
