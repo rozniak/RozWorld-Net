@@ -49,7 +49,6 @@
     <Compile Include="Packets\AcknowledgePacket.cs" />
     <Compile Include="Packets\ChatActionPacket.cs" />
     <Compile Include="Packets\ChatUpdatePacket.cs" />
-    <Compile Include="Packets\ClientDisconnectPacket.cs" />
     <Compile Include="Packets\DisconnectActionPacket.cs" />
     <Compile Include="Packets\DisconnectReason.cs" />
     <Compile Include="Packets\Event\PacketEvent.cs" />
@@ -65,7 +64,6 @@
     <Compile Include="Packets\PacketType.cs" />
     <Compile Include="Packets\PingPacket.cs" />
     <Compile Include="Packets\SenderIs.cs" />
-    <Compile Include="Packets\ServerDisconnectPacket.cs" />
     <Compile Include="Packets\ServerInfoRequestPacket.cs" />
     <Compile Include="Packets\ServerInfoResponsePacket.cs" />
     <Compile Include="Packets\SignUpRequestPacket.cs" />

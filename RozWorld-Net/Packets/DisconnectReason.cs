@@ -12,7 +12,7 @@
 namespace Oddmatics.RozWorld.Net.Packets
 {
     /// <summary>
-    /// Contains constants for determining a client disconnect reason.
+    /// Contains constants for determining a disconnect reason
     /// </summary>
     public static class DisconnectReason
     {
@@ -29,5 +29,17 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// The client crashed but still managed to issue a disconnect.
         /// </summary>
         public const byte CLIENT_CRASH = 3;
+        /// <summary>
+        /// The server has shut down.
+        /// </summary>
+        public const byte SERVER_SHUTDOWN = 100;
+        /// <summary>
+        /// The server is down for maintenance.
+        /// </summary>
+        public const byte SERVER_MAINTENANCE = 101;
+        /// <summary>
+        /// The server kicked the client.
+        /// </summary>
+        public const byte KICKED = 102;
     }
 }

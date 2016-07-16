@@ -53,18 +53,6 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         public const byte HASHTIME_INVALID = 8;
         /// <summary>
-        /// The server has shutdown.
-        /// </summary>
-        public const byte SERVER_SHUTDOWN = 9;
-        /// <summary>
-        /// The server terminated the connection due to a kick being issued against the client.
-        /// </summary>
-        public const byte KICKED = 10;
-        /// <summary>
-        /// The server is down for maintenance.
-        /// </summary>
-        public const byte SERVER_MAINTENANCE = 11;
-        /// <summary>
         /// The network function has not been fully implemented.
         /// </summary>
         public const byte NOT_IMPLEMENTED = 100;

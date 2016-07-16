@@ -17,7 +17,7 @@ using System.Net;
 namespace Oddmatics.RozWorld.Net.Packets
 {
     /// <summary>
-    /// [CLIENT --> SERVER] Represents a disconnect action packet.
+    /// [EITHER] Represents a disconnect action packet.
     /// </summary>
     public class DisconnectActionPacket : IAcknowledgeable
     {
@@ -44,7 +44,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the sender of this DisconnectActionPacket.
         /// </summary>
-        public SenderIs Sender { get { return SenderIs.Client; } }
+        public SenderIs Sender { get { return SenderIs.Either; } }
 
         /// <summary>
         /// Gets the sender's IPEndPoint of this DisconnectActionPacket.
