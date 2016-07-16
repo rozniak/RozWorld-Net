@@ -11,6 +11,7 @@
 
 using Oddmatics.RozWorld.Net.Packets;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Timers;
 
@@ -30,6 +31,26 @@ namespace Oddmatics.RozWorld.Net.Server
         /// The IPEndPoint of the client.
         /// </summary>
         public IPEndPoint EndPoint { get; private set; }
+
+        /// <summary>
+        /// The freed, previously used, acknowledgement IDs.
+        /// </summary>
+        private Queue<ushort> FreedAckIds;
+
+        /// <summary>
+        /// Gets the next available acknowledgement ID to use.
+        /// </summary>
+        public ushort NextAckId
+        {
+            get
+            {
+                if (FreedAckIds.Count > 0)
+                    return FreedAckIds.Dequeue();
+                else
+                    return _NextAckId++;
+            }
+        }
+        private ushort _NextAckId;
 
         /// <summary>
         /// The parent RwUdpServer instance.
@@ -67,6 +88,18 @@ namespace Oddmatics.RozWorld.Net.Server
             EndPoint = clientEP;
         }
 
+
+        /// <summary>
+        /// Registers an ID that has been acknowledged.
+        /// </summary>
+        /// <param name="id">The acknoledgement ID to free up.</param>
+        public void Acknowledge(ushort id)
+        {
+            if (id >= _NextAckId || FreedAckIds.Contains(id))
+                throw new ArgumentException("ConnectedClient.Acknowledge: The ack ID given is not valid.");
+
+            FreedAckIds.Enqueue(id);
+        }
 
         /// <summary>
         /// Enables this ConnectedClient.
