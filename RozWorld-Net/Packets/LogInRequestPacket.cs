@@ -69,9 +69,9 @@ namespace Oddmatics.RozWorld.Net.Packets
         public string Username { get; private set; }
 
         /// <summary>
-        /// Gets the time the password was hashed in ticks, this represents the time difference between the has time and UTC midnight.
+        /// Gets the time the password was hashed in ticks.
         /// </summary>
-        public int UtcHashTimeDifference { get; private set; }
+        public long UtcHashTime { get; private set; }
 
         /// <summary>
         /// Gets whether the time of the hash is acceptable for logging in.
@@ -81,7 +81,8 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             get
             {
-                return DateTime.UtcNow.Ticks + UtcHashTimeDifference > DateTime.UtcNow.Ticks - (TimeSpan.TicksPerSecond * 5);
+                long utcTicks = DateTime.UtcNow.Ticks;
+                return utcTicks - UtcHashTime < TimeSpan.TicksPerSecond * 5;
             }
         }
 
@@ -97,7 +98,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             ChatOnly = ByteParse.NextBool(data, ref currentIndex);
             SkinDownloads = ByteParse.NextBool(data, ref currentIndex);
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
-            UtcHashTimeDifference = ByteParse.NextInt(data, ref currentIndex);
+            UtcHashTime = ByteParse.NextLong(data, ref currentIndex);
             PasswordHash = new byte[data.Length - 1 - currentIndex];
             Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - 1 - currentIndex);
 
@@ -119,9 +120,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             var sha256 = new SHA256Managed();
             byte[] passwordHash = sha256.ComputeHash(Encoding.Unicode.GetBytes(password));
 
-            var utcNow = DateTime.UtcNow;
-            var utcMidnight = utcNow.Date;
-            int ticks = (int)(utcNow.Ticks - utcMidnight.Ticks);
+            long ticks = DateTime.UtcNow.Ticks;
 
             var hashByteList = new List<byte>(passwordHash);
             hashByteList.AddRange(ticks.GetBytes());
@@ -130,7 +129,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             PasswordHash = sha256.ComputeHash(hashByteList.ToArray());
             SkinDownloads = skinDownloads;
             Username = username;
-            UtcHashTimeDifference = ticks;
+            UtcHashTime = ticks;
         }
 
         /// <summary>
@@ -138,10 +137,10 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         /// <param name="username">The username to log in as.</param>
         /// <param name="passwordHash">The SHA-256 password hash to check against.</param>
-        /// <param name="utcHashTimeDiff">The time difference in ticks between midnight UTC and the UTC hash time.</param>
+        /// <param name="utcHashTime">The UTC time in ticks when the password hash was created.</param>
         /// <param name="chatOnly">Whether to log on in chat-only mode.</param>
         /// <param name="skinDownloads">Whether skin downloads are accepted.</param>
-        public LogInRequestPacket(string username, byte[] passwordHash, int utcHashTimeDiff, bool chatOnly, bool skinDownloads)
+        private LogInRequestPacket(string username, byte[] passwordHash, long utcHashTime, bool chatOnly, bool skinDownloads)
         {
             if (!username.LengthWithinRange(1, 256))
                 throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
@@ -153,7 +152,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             SkinDownloads = skinDownloads;
             PasswordHash = passwordHash;
             Username = username;
-            UtcHashTimeDifference = utcHashTimeDiff;
+            UtcHashTime = utcHashTime;
         }
 
 
@@ -163,7 +162,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <returns>The LogInRequestPacket this method creates, cast as an object.</returns>
         public object Clone()
         {
-            return new LogInRequestPacket(Username, PasswordHash, UtcHashTimeDifference, ChatOnly, SkinDownloads);
+            return new LogInRequestPacket(Username, PasswordHash, UtcHashTime, ChatOnly, SkinDownloads);
         }
 
         /// <summary>
@@ -178,7 +177,7 @@ namespace Oddmatics.RozWorld.Net.Packets
             data.AddRange(ChatOnly.GetBytes());
             data.AddRange(SkinDownloads.GetBytes());
             data.AddRange(Username.GetBytesByLength(1, Encoding.UTF8));
-            data.AddRange(UtcHashTimeDifference.GetBytes());
+            data.AddRange(UtcHashTime.GetBytes());
             data.AddRange(PasswordHash);
 
             return data.ToArray();

@@ -229,22 +229,9 @@ namespace Oddmatics.RozWorld.Net.Client
         {
             if (State == ClientState.Idle && Active)
             {
-                var sha256 = new SHA256Managed();
-                byte[] passwordHash = sha256.ComputeHash(Encoding.Unicode.GetBytes(password));
-
-                var finalHash = new List<byte>();
-                DateTime currentUtc = DateTime.UtcNow;
-                DateTime midnightUtc = new DateTime(currentUtc.Year, currentUtc.Month,
-                    currentUtc.Day);
-                int hashTickTime = (int)(currentUtc.Ticks - midnightUtc.Ticks);
-
-                finalHash.AddRange(passwordHash);
-                finalHash.AddRange(hashTickTime.GetBytes());
-
-                var packet = new LogInRequestPacket(username,
-                    sha256.ComputeHash(finalHash.ToArray()),
-                    hashTickTime, chatOnly, skinDownloads);
-                var packetWatcher = new PacketWatcher(packet, destination, this);
+                var packetWatcher = new PacketWatcher(
+                    new LogInRequestPacket(username, password, chatOnly, skinDownloads),
+                    destination, this);
 
                 State = ClientState.LoggingIn;
                 packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_LogIn);
