@@ -384,8 +384,10 @@ namespace Oddmatics.RozWorld.Net.Client
                     ConnectionTerminated(this, EventArgs.Empty);
                 return;
             }
-            
-            Client.BeginReceive(new AsyncCallback(Received), null);
+            finally
+            {
+                Client.BeginReceive(new AsyncCallback(Received), null);
+            }
 
             int currentIndex = 0;
             ushort id = ByteParse.NextUShort(rxData, ref currentIndex);
