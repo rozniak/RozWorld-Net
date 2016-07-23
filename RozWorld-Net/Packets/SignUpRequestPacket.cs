@@ -68,8 +68,8 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             int currentIndex = 2; // Skip first two bytes for ID
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
-            PasswordHash = new byte[data.Length - 1 - currentIndex];
-            Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - 1 - currentIndex);
+            PasswordHash = new byte[data.Length - currentIndex];
+            Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - currentIndex);
 
             SenderEndPoint = senderEndPoint;
         }

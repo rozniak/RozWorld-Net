@@ -99,8 +99,8 @@ namespace Oddmatics.RozWorld.Net.Packets
             SkinDownloads = ByteParse.NextBool(data, ref currentIndex);
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
             UtcHashTime = ByteParse.NextLong(data, ref currentIndex);
-            PasswordHash = new byte[data.Length - 1 - currentIndex];
-            Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - 1 - currentIndex);
+            PasswordHash = new byte[data.Length - currentIndex];
+            Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - currentIndex);
 
             SenderEndPoint = senderEndPoint;
         }
@@ -118,7 +118,7 @@ namespace Oddmatics.RozWorld.Net.Packets
                 throw new ArgumentException("LogInRequestPacket.New: Invalid username length.");
 
             var sha256 = new SHA256Managed();
-            byte[] passwordHash = sha256.ComputeHash(Encoding.Unicode.GetBytes(password));
+            byte[] passwordHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
 
             long ticks = DateTime.UtcNow.Ticks;
 
