@@ -19,7 +19,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// The amount of resend attempts to make for authentication packets.
         /// </summary>
-        public const byte RESEND_ATTEMPTS_AUTH = 0;
+        public const byte RESEND_ATTEMPTS_AUTH = 3;
 
         /// <summary>
         /// The time in milliseconds until a resend attempt is made for authentication packets.
