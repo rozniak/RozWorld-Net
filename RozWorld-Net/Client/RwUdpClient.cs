@@ -107,6 +107,11 @@ namespace Oddmatics.RozWorld.Net.Client
         public event PacketEventHandler PacketTimeout;
 
         /// <summary>
+        /// Occurs when the server connection has timed out.
+        /// </summary>
+        public event EventHandler ServerTimeout;
+
+        /// <summary>
         /// Occurs when a sign up response has been received.
         /// </summary>
         public event PacketEventHandler SignUpResponseReceived;
@@ -373,7 +378,18 @@ namespace Oddmatics.RozWorld.Net.Client
             }
             finally
             {
-                Client.BeginReceive(new AsyncCallback(Received), null);
+                // Hack? Maybe? It works though
+                bool receiving = false;
+
+                while (!receiving)
+                {
+                    try
+                    {
+                        Client.BeginReceive(new AsyncCallback(Received), null);
+                        receiving = true;
+                    }
+                    catch { }
+                }
             }
 
             int currentIndex = 0;
@@ -463,8 +479,13 @@ namespace Oddmatics.RozWorld.Net.Client
                 TimeoutTimer.Elapsed -= TimeoutTimer_Elapsed_ServerConnection;
                 State = ClientState.Idle;
 
-                if (ConnectionTerminated != null)
-                    ConnectionTerminated(this, EventArgs.Empty);
+                foreach (string packet in WatchedPackets.Keys)
+                {
+                    KillReceive(packet);
+                }
+
+                if (ServerTimeout != null)
+                    ServerTimeout(this, EventArgs.Empty);
             }
         }
     }

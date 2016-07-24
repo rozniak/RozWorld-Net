@@ -198,8 +198,32 @@ namespace Oddmatics.RozWorld.Net.Server
         private void Received(IAsyncResult result)
         {
             IPEndPoint senderEP = new IPEndPoint(0, 0);
-            byte[] rxData = Client.EndReceive(result, ref senderEP);
-            Client.BeginReceive(new AsyncCallback(Received), null);
+            byte[] rxData = new byte[] { };
+
+            try
+            {
+                rxData = Client.EndReceive(result, ref senderEP);
+            }
+            catch (SocketException ex)
+            {
+                // Connection terminated by remote host, ignore and continue
+                // This block is required since otherwise an error occurs regardless
+            }
+            finally
+            {
+                // Hack? Maybe? It works though
+                bool receiving = false;
+
+                while (!receiving)
+                {
+                    try
+                    {
+                        Client.BeginReceive(new AsyncCallback(Received), null);
+                        receiving = true;
+                    }
+                    catch { }
+                }
+            }
 
             int currentIndex = 0;
             ushort id = ByteParse.NextUShort(rxData, ref currentIndex);

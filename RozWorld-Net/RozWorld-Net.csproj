@@ -47,8 +47,7 @@
   <ItemGroup>
     <Compile Include="Client\ClientState.cs" />
     <Compile Include="Packets\AcknowledgePacket.cs" />
-    <Compile Include="Packets\ChatActionPacket.cs" />
-    <Compile Include="Packets\ChatUpdatePacket.cs" />
+    <Compile Include="Packets\ChatPacket.cs" />
     <Compile Include="Packets\DisconnectActionPacket.cs" />
     <Compile Include="Packets\DisconnectReason.cs" />
     <Compile Include="Packets\Event\PacketEvent.cs" />
@@ -57,7 +56,6 @@
     <Compile Include="Packets\ErrorMessage.cs" />
     <Compile Include="Packets\IAcknowledgeable.cs" />
     <Compile Include="Packets\IPacket.cs" />
-    <Compile Include="Packets\IPlayerPacket.cs" />
     <Compile Include="Packets\LogInRequestPacket.cs" />
     <Compile Include="Packets\LogInResponsePacket.cs" />
     <Compile Include="Packets\PacketTimeout.cs" />
