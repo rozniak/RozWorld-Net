@@ -27,12 +27,17 @@ namespace Oddmatics.RozWorld.Net.Client
         private byte Attempts;
 
         /// <summary>
-        /// Destination IPEndPoint to receive from.
+        /// Gets the destination IPEndPoint to receive from.
         /// </summary>
         public IPEndPoint EndPoint { get; private set; }
 
         /// <summary>
-        /// The IPacket for resending.
+        /// Gets the key string used to identify this PacketWatcher.
+        /// </summary>
+        public string Key { get; private set; }
+
+        /// <summary>
+        /// Gets the IPacket for resending.
         /// </summary>
         public IPacket Packet { get; private set; }
 
@@ -63,14 +68,16 @@ namespace Oddmatics.RozWorld.Net.Client
         /// </summary>
         /// <param name="packet">The IPacket to watch.</param>
         /// <param name="destination">The destination IPEndPoint of the remote host.</param>
+        /// <param name="key">The key used to identify this PacketWatcher.</param>
         /// <param name="parent">The parent RwUdpClient instance.</param>
-        public PacketWatcher(IPacket packet, IPEndPoint destination, RwUdpClient parent)
+        public PacketWatcher(IPacket packet, IPEndPoint destination, string key, RwUdpClient parent)
         {
             if (packet == null || destination == null || parent == null)
                 throw new ArgumentException("PacketWatcher.New: Cannot initialise with null arguments.");
 
             Attempts = 0;
             EndPoint = destination;
+            Key = key;
             Packet = packet;
             Parent = parent;
         }

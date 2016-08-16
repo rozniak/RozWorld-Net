@@ -27,6 +27,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public const ushort RESEND_TIMEOUT_AUTH = 1000;
 
         /// <summary>
+        /// The amount of resend attempts to make for chat message packets.
+        /// </summary>
+        public const byte RESEND_ATTEMPTS_CHAT = 6;
+
+        /// <summary>
         /// The amount of resend attempts to make for movement packets.
         /// </summary>
         public const byte RESEND_ATTEMPTS_MOVEMENTS = 255;

@@ -56,6 +56,26 @@ namespace Oddmatics.RozWorld.Net.Client
         private IPEndPoint EndPoint;
 
         /// <summary>
+        /// The freed, previously used, acknowledgement IDs.
+        /// </summary>
+        private Queue<ushort> FreedAckIds;
+
+        /// <summary>
+        /// Gets the next available acknowledgement ID to use.
+        /// </summary>
+        public ushort NextAckId
+        {
+            get
+            {
+                if (FreedAckIds.Count > 0)
+                    return FreedAckIds.Dequeue();
+                else
+                    return _NextAckId++;
+            }
+        }
+        private ushort _NextAckId;
+
+        /// <summary>
         /// The time in milliseconds since the last packet was receieved from the connected server.
         /// </summary>
         private ushort SinceLastPacketReceived;
@@ -170,17 +190,18 @@ namespace Oddmatics.RozWorld.Net.Client
             if (State == ClientState.Idle || State == ClientState.Broadcasting
                 && Active)
             {
+                string key = "ServerInfoRequest";
                 var packet = new ServerInfoRequestPacket(clientImplementation,
                     versionRaw, serverImplementation);
 
                 if (State == ClientState.Broadcasting)
-                    WatchedPackets["ServerInfoRequest"].Reset(packet);
+                    WatchedPackets[key].Reset(packet);
                 else
                 {
-                    var packetWatcher = new PacketWatcher(packet, SERVER_BROADCAST_ENDPOINT, this);
+                    var packetWatcher = new PacketWatcher(packet, SERVER_BROADCAST_ENDPOINT, key, this);
                     State = ClientState.Broadcasting;
                     packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_ServerScan);
-                    WatchedPackets.Add("ServerInfoRequest", packetWatcher);
+                    WatchedPackets.Add(key, packetWatcher);
                     packetWatcher.Start();
                 }
             }
@@ -234,14 +255,15 @@ namespace Oddmatics.RozWorld.Net.Client
         {
             if (State == ClientState.Idle && Active)
             {
+                string key = "LogInRequest";
                 var packetWatcher = new PacketWatcher(
                     new LogInRequestPacket(username, password, chatOnly, skinDownloads),
-                    destination, this);
+                    destination, key, this);
 
                 State = ClientState.LoggingIn;
                 packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_LogIn);
                 ConnectionError += new EventHandler(packetWatcher_Timeout_LogIn);
-                WatchedPackets.Add("LogInRequest", packetWatcher);
+                WatchedPackets.Add(key, packetWatcher);
                 packetWatcher.Start();
 
                 return true;
@@ -259,6 +281,27 @@ namespace Oddmatics.RozWorld.Net.Client
         {
             byte[] txData = packet.GetBytes();
             Client.BeginSend(txData, txData.Length, destination, new AsyncCallback(Sent), null);
+        }
+
+        /// <summary>
+        /// Sends a game chat message to the currently connected server.
+        /// </summary>
+        /// <param name="username">The username of the player sending the message.</param>
+        /// <param name="message">The game chat message to send.</param>
+        public void SendGameChatMessage(string username, string message)
+        {
+            if (State == ClientState.Connected)
+            {
+                ushort nextAck = NextAckId;
+                string key = "ChatPacket:" + nextAck.ToString();
+                var packet = new ChatPacket(message, username, nextAck);
+                var packetWatcher = new PacketWatcher(packet, EndPoint, key, this);
+
+                packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_ChatMessage);
+                ConnectionError += new EventHandler(packetWatcher_Timeout_ChatMessage);
+                WatchedPackets.Add(key, packetWatcher);
+                packetWatcher.Start();
+            }
         }
 
         /// <summary>
@@ -287,14 +330,15 @@ namespace Oddmatics.RozWorld.Net.Client
         {
             if (State == ClientState.Idle && Active)
             {
+                string key = "SignUpRequest";
                 byte[] passwordHash = new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(password));
                 var packet = new SignUpRequestPacket(username, passwordHash);
-                var packetWatcher = new PacketWatcher(packet, destination, this);
+                var packetWatcher = new PacketWatcher(packet, destination, key, this);
 
                 State = ClientState.SigningUp;
                 packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_SignUp);
                 ConnectionError += new EventHandler(packetWatcher_Timeout_SignUp);
-                WatchedPackets.Add("SignUpRequest", packetWatcher);
+                WatchedPackets.Add(key, packetWatcher);
                 packetWatcher.Start();
 
                 return true;
@@ -321,6 +365,17 @@ namespace Oddmatics.RozWorld.Net.Client
             }
         }
 
+
+        /// <summary>
+        /// [WatchedPackets[ChatPacket:AckId].Timeout] Chat message packet timeout.
+        /// </summary>
+        private void packetWatcher_Timeout_ChatMessage(object sender, EventArgs e)
+        {
+            IPacket packet = KillReceive(((PacketWatcher)sender).Key);
+
+            if (PacketTimeout != null && sender is PacketWatcher)
+                PacketTimeout(this, new PacketEventArgs(packet));
+        }
 
         /// <summary>
         /// [WatchedPackets[LogInRequest].Timeout] Log in packet timeout.
@@ -378,6 +433,10 @@ namespace Oddmatics.RozWorld.Net.Client
             }
             finally
             {
+                //
+                // TODO: Review this... is it still necessary after the SocketException patch?
+                //
+
                 // Hack? Maybe? It works though
                 bool receiving = false;
 
