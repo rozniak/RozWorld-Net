@@ -75,11 +75,7 @@ namespace Oddmatics.RozWorld.Net.Client
                 if (FreedAckIds.Count > 0)
                     return FreedAckIds.Dequeue();
                 else
-                {
-                    ushort nextAck = _NextAckId++;
-                    FreedAckIds.Enqueue(nextAck);
-                    return nextAck;
-                }
+                    return _NextAckId++;
             }
         }
         private ushort _NextAckId;
@@ -568,6 +564,8 @@ namespace Oddmatics.RozWorld.Net.Client
 
             if (SinceLastPacketReceived > SERVER_TIMEOUT_TIME)
             {
+                SinceLastPacketReceived = 0;
+                SinceLastPacketSent = 0;
                 TimeoutTimer.Elapsed -= TimeoutTimer_Elapsed_ServerConnection;
                 State = ClientState.Idle;
 
