@@ -89,8 +89,10 @@ namespace Oddmatics.RozWorld.Net.Server
             if (clientEP == null || parent == null)
                 throw new ArgumentException("ConnectedClient.New: Null arguments are not allowed.");
 
-            Parent = parent;
             EndPoint = clientEP;
+            FreedAckIds = new Queue<ushort>();
+            Parent = parent;
+            Usernames = new List<string>();
         }
 
 

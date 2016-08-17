@@ -154,6 +154,7 @@ namespace Oddmatics.RozWorld.Net.Client
             TimeoutTimer = new Timer(10);
             TimeoutTimer.Enabled = true;
             TimeoutTimer.Start();
+            FreedAckIds = new Queue<ushort>();
             KeyByAck = new Dictionary<ushort, string>();
             WatchedPackets = new Dictionary<string, PacketWatcher>();
             Random random = new Random();
