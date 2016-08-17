@@ -61,6 +61,11 @@ namespace Oddmatics.RozWorld.Net.Client
         private Queue<ushort> FreedAckIds;
 
         /// <summary>
+        /// The mapping between acknowledgement IDs and packet keys.
+        /// </summary>
+        private Dictionary<ushort, string> KeyByAck;
+
+        /// <summary>
         /// Gets the next available acknowledgement ID to use.
         /// </summary>
         public ushort NextAckId
@@ -70,7 +75,11 @@ namespace Oddmatics.RozWorld.Net.Client
                 if (FreedAckIds.Count > 0)
                     return FreedAckIds.Dequeue();
                 else
-                    return _NextAckId++;
+                {
+                    ushort nextAck = _NextAckId++;
+                    FreedAckIds.Enqueue(nextAck);
+                    return nextAck;
+                }
             }
         }
         private ushort _NextAckId;
@@ -145,6 +154,7 @@ namespace Oddmatics.RozWorld.Net.Client
             TimeoutTimer = new Timer(10);
             TimeoutTimer.Enabled = true;
             TimeoutTimer.Start();
+            KeyByAck = new Dictionary<ushort, string>();
             WatchedPackets = new Dictionary<string, PacketWatcher>();
             Random random = new Random();
             bool successfulPort = false;
@@ -234,7 +244,15 @@ namespace Oddmatics.RozWorld.Net.Client
                     ConnectionError -= packetWatcher_Timeout_LogIn;
                     break;
 
-                default: return packet; // Should never reach this point
+                    // Most likely for ack'd packets
+                default:
+                    if (requestType.StartsWith("ChatPacket:"))
+                    {
+                        WatchedPackets[requestType].Timeout -= packetWatcher_Timeout_ChatMessage;
+                        ConnectionError -= packetWatcher_Timeout_ChatMessage;
+                    }
+
+                    break;
             }
 
             WatchedPackets.Remove(requestType);
@@ -299,6 +317,7 @@ namespace Oddmatics.RozWorld.Net.Client
 
                 packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_ChatMessage);
                 ConnectionError += new EventHandler(packetWatcher_Timeout_ChatMessage);
+                KeyByAck.Add(nextAck, key);
                 WatchedPackets.Add(key, packetWatcher);
                 packetWatcher.Start();
             }
@@ -499,19 +518,32 @@ namespace Oddmatics.RozWorld.Net.Client
 
                     break;
 
-                    // Ping packet
-                case PacketType.PING_ID:
+                    // AcknowledgePacket
+                case PacketType.ACK_ID:
+                    var ackPacket = new AcknowledgePacket(rxData, EndPoint);
+
                     if (State == ClientState.Connected &&
-                        senderEP.Equals(EndPoint))
-                        SinceLastPacketReceived = 0;
+                        senderEP.Equals(EndPoint) &&
+                        KeyByAck.ContainsKey(ackPacket.AckId))
+                    {
+                        KillReceive(KeyByAck[ackPacket.AckId]);
+                        KeyByAck.Remove(ackPacket.AckId);
+                        FreedAckIds.Enqueue(ackPacket.AckId); // Free ack ID again
+                    }
 
                     break;
 
                 case 0:
+                case PacketType.PING_ID:
                 default:
-                    // Bad packet
+                    // Bad packet or ping packet
                     break;
             }
+
+            // Handle server ping connection
+            if (State == ClientState.Connected &&
+                senderEP.Equals(EndPoint))
+                SinceLastPacketReceived = 0;
         }
 
         /// <summary>

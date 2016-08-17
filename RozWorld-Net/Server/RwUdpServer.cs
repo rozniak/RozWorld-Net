@@ -74,6 +74,11 @@ namespace Oddmatics.RozWorld.Net.Server
         public event ClientDropEventHandler ClientDropped;
 
         /// <summary>
+        /// Occurs when a game chat message has been received.
+        /// </summary>
+        public event PacketEventHandler ChatMessageReceived;
+
+        /// <summary>
         /// Occurs when a server information request has been received.
         /// </summary>
         public event PacketEventHandler InfoRequestReceived;
@@ -107,15 +112,27 @@ namespace Oddmatics.RozWorld.Net.Server
         /// <summary>
         /// Creates and adds a new ConnectedClient to the collection in this RwUdpServer.
         /// </summary>
+        /// <param name="username">The username of the ConnectedClient to make.</param>
         /// <param name="clientEP">The IPEndPoint of the ConnectedClient to make.</param>
         /// <returns>True if the ConnectedClient was made and added (will return false if the IPEndPoint is already connected).</returns>
-        public bool AddClient(IPEndPoint clientEP)
+        public bool AddClient(string username, IPEndPoint clientEP)
         {
+            string realUsername = username.ToLower();
+
             if (ConnectedClients.ContainsKey(clientEP))
+            {
+                if (!ConnectedClients[clientEP].Usernames.Contains(realUsername))
+                {
+                    ConnectedClients[clientEP].Usernames.Remove(realUsername);
+                    return true;
+                }
+
                 return false;
+            }
 
             var newClient = new ConnectedClient(clientEP, this);
             newClient.TimedOut += new EventHandler(ConnectedClient_TimedOut);
+            newClient.Usernames.Add(realUsername);
 
             ConnectedClients.Add(clientEP, newClient);
 
@@ -251,18 +268,30 @@ namespace Oddmatics.RozWorld.Net.Server
                             new PacketEventArgs(new LogInRequestPacket(rxData, senderEP)));
                     break;
 
-                    // Generic ping (handle these internally)
-                case PacketType.PING_ID:
-                    if (ConnectedClients.ContainsKey(senderEP))
-                        ConnectedClients[senderEP].ResetTimeoutCounter();
+                    // ChatPacket
+                case PacketType.CHAT_MESSAGE_ID:
+                    var chatPacket = new ChatPacket(rxData, senderEP);
+
+                    if (ConnectedClients.ContainsKey(senderEP) &&
+                        ConnectedClients[senderEP].Usernames.Contains(chatPacket.Username.ToLower()) &&
+                        ChatMessageReceived != null)
+                        ChatMessageReceived(this, new PacketEventArgs(chatPacket));
+
+                    // Acknowldege that packet
+                    Send(new AcknowledgePacket(chatPacket.AckId), senderEP);
 
                     break;
 
                 case 0:
+                case PacketType.PING_ID:
                 default:
-                    // Bad packet
+                    // Bad packet or ping packet
                     break;
             }
+
+            // Handle connections (pings just trigger this)
+            if (ConnectedClients.ContainsKey(senderEP))
+                ConnectedClients[senderEP].ResetTimeoutCounter();
         }
 
         /// <summary>

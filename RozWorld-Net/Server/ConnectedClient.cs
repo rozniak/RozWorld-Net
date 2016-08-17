@@ -67,6 +67,11 @@ namespace Oddmatics.RozWorld.Net.Server
         /// </summary>
         private ushort SinceLastPacketSent;
 
+        /// <summary>
+        /// The usernames associated with this ConnectedClient.
+        /// </summary>
+        public List<string> Usernames;
+
 
         /// <summary>
         /// Occurs when the last packet received's time exceeds the timeout requirement to drop the connection for this client.
