@@ -114,7 +114,7 @@ namespace Oddmatics.RozWorld.Net.Server
         /// </summary>
         /// <param name="username">The username of the ConnectedClient to make.</param>
         /// <param name="clientEP">The IPEndPoint of the ConnectedClient to make.</param>
-        /// <returns>True if the ConnectedClient was made and added (will return false if the IPEndPoint is already connected).</returns>
+        /// <returns>True if the ConnectedClient was made and added or a UserClient instance was added for the user.</returns>
         public bool AddClient(string username, IPEndPoint clientEP)
         {
             string realUsername = username.ToLower();
@@ -123,7 +123,7 @@ namespace Oddmatics.RozWorld.Net.Server
             {
                 if (!ConnectedClients[clientEP].Usernames.Contains(realUsername))
                 {
-                    ConnectedClients[clientEP].Usernames.Remove(realUsername);
+                    ConnectedClients[clientEP].AddUser(realUsername);
                     return true;
                 }
 
@@ -132,7 +132,7 @@ namespace Oddmatics.RozWorld.Net.Server
 
             var newClient = new ConnectedClient(clientEP, this);
             newClient.TimedOut += new EventHandler(ConnectedClient_TimedOut);
-            newClient.Usernames.Add(realUsername);
+            newClient.AddUser(realUsername);
 
             ConnectedClients.Add(clientEP, newClient);
 
@@ -279,6 +279,14 @@ namespace Oddmatics.RozWorld.Net.Server
 
                     // Acknowldege that packet
                     Send(new AcknowledgePacket(chatPacket.AckId), senderEP);
+
+                    break;
+
+                case PacketType.ACK_ID:
+                    var ackPacket = new AcknowledgePacket(rxData, senderEP);
+
+                    if (ConnectedClients.ContainsKey(senderEP))
+                        ConnectedClients[senderEP].Acknowledge(ackPacket.AckId);
 
                     break;
 

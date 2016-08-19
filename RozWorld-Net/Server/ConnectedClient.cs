@@ -23,6 +23,11 @@ namespace Oddmatics.RozWorld.Net.Server
     public class ConnectedClient
     {
         /// <summary>
+        /// The mapping of acknowledgement IDs to user clients.
+        /// </summary>
+        private Dictionary<ushort, string> AckListing;
+
+        /// <summary>
         /// Gets whether this ConnectedClient is alive or not.
         /// </summary>
         public bool Alive { get; private set; }
@@ -68,9 +73,14 @@ namespace Oddmatics.RozWorld.Net.Server
         private ushort SinceLastPacketSent;
 
         /// <summary>
+        /// The attached user client trackers to this ConnectedClient.
+        /// </summary>
+        private Dictionary<string, UserClient> UserClients;
+
+        /// <summary>
         /// The usernames associated with this ConnectedClient.
         /// </summary>
-        public List<string> Usernames;
+        public IList<string> Usernames { get { return new List<string>(UserClients.Keys).AsReadOnly(); } }
 
 
         /// <summary>
@@ -89,10 +99,11 @@ namespace Oddmatics.RozWorld.Net.Server
             if (clientEP == null || parent == null)
                 throw new ArgumentException("ConnectedClient.New: Null arguments are not allowed.");
 
+            AckListing = new Dictionary<ushort, string>();
             EndPoint = clientEP;
             FreedAckIds = new Queue<ushort>();
             Parent = parent;
-            Usernames = new List<string>();
+            UserClients = new Dictionary<string, UserClient>();
         }
 
 
@@ -105,7 +116,52 @@ namespace Oddmatics.RozWorld.Net.Server
             if (id >= _NextAckId || FreedAckIds.Contains(id))
                 throw new ArgumentException("ConnectedClient.Acknowledge: The ack ID given is not valid.");
 
+            string[] ackListing = AckListing[id].Split(':');
+            string username = ackListing[0];
+            UserClient userClient = UserClients[username];
+
+            AckListing.Remove(id); // Remove from listing now
+
+            switch (ackListing[1]) // Should always have 2 parts
+            {
+                case "ChatPacket":
+                    // Check if acks match
+                    if (userClient.CurrentChatMessage.Item1 == id)
+                    {
+                        if (userClient.ChatMessages.Count > 0)
+                        {
+                            string nextMessage = userClient.ChatMessages.Dequeue();
+                            ushort nextAck = NextAckId;
+
+                            userClient.CurrentChatMessage =
+                                new Tuple<ushort, string>(nextAck, nextMessage);
+                            AckListing.Add(nextAck, username + ":ChatPacket");
+                            SendPacket(new ChatPacket(nextMessage, username, nextAck));
+                        }
+                        else
+                            userClient.CurrentChatMessage = null;
+                    }
+
+                    break;
+
+                default:
+                    // Bad ack listing
+                    break;
+            }
+
             FreedAckIds.Enqueue(id);
+        }
+
+        /// <summary>
+        /// Adds a new user to this ConnectedClient.
+        /// </summary>
+        /// <param name="username">The name of the user to add.</param>
+        public void AddUser(string username)
+        {
+            string realUsername = username.ToLower();
+
+            if (!UserClients.ContainsKey(realUsername))
+                UserClients.Add(realUsername, new UserClient());
         }
 
         /// <summary>
@@ -124,6 +180,15 @@ namespace Oddmatics.RozWorld.Net.Server
         }
 
         /// <summary>
+        /// Disconnects either this ConnectedClient or a specific user from this ConnectedClient.
+        /// </summary>
+        /// <param name="username">The username to drop, empty for the entire client.</param>
+        public void Disconnect(string username = "")
+        {
+            // TODO: Code this
+        }
+
+        /// <summary>
         /// Resets the timeout counter.
         /// </summary>
         public void ResetTimeoutCounter()
@@ -132,6 +197,34 @@ namespace Oddmatics.RozWorld.Net.Server
                 SinceLastPacketReceived = 0;
             else
                 throw new InvalidOperationException("ConnectedClient.ResetTimeoutCounter: Cannot reset timeout for a timed out client.");
+        }
+
+        /// <summary>
+        /// Sends a game chat message to the end client.
+        /// </summary>
+        /// <param name="username">The username at the end client to receive this message.</param>
+        /// <param name="message">The message to send.</param>
+        public void SendGameChat(string username, string message)
+        {
+            string realUsername = username.ToLower();
+
+            if (Alive && UserClients.ContainsKey(realUsername))
+            {
+                UserClient userClient = UserClients[realUsername];
+
+                if (userClient.CurrentChatMessage != null)
+                {
+                    userClient.ChatMessages.Enqueue(message);
+                    return;
+                }
+
+                ushort ackId = NextAckId;
+                var chatPacket = new ChatPacket(message, realUsername, ackId);
+
+                AckListing.Add(ackId, realUsername + ":ChatPacket");
+                userClient.CurrentChatMessage = new Tuple<ushort, string>(ackId, message);
+                SendPacket(chatPacket);
+            }
         }
 
         /// <summary>
@@ -153,6 +246,8 @@ namespace Oddmatics.RozWorld.Net.Server
         /// </summary>
         private void TimeoutTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            // TODO: add something to make ack'd packets get resent!
+
             var timer = (Timer)sender;
             SinceLastPacketReceived += (ushort)timer.Interval;
             SinceLastPacketSent += (ushort)timer.Interval;

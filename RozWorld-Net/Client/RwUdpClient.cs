@@ -107,6 +107,11 @@ namespace Oddmatics.RozWorld.Net.Client
 
 
         /// <summary>
+        /// Occurs when a chat message packet has been received.
+        /// </summary>
+        public event PacketEventHandler ChatMessageReceived;
+
+        /// <summary>
         /// Occurs when the current connection is terminated by the remote host - for local class usage only.
         /// </summary>
         private event EventHandler ConnectionError;
@@ -513,6 +518,20 @@ namespace Oddmatics.RozWorld.Net.Client
                             LogInResponseReceieved(this, new PacketEventArgs(logInPacket));
                     }
 
+                    break;
+
+                    // ChatPacket
+                case PacketType.CHAT_MESSAGE_ID:
+                    var chatPacket = new ChatPacket(rxData, senderEP);
+
+                    if (State == ClientState.Connected)
+                    {
+                        if (ChatMessageReceived != null)
+                            ChatMessageReceived(this, new PacketEventArgs(chatPacket));
+
+                        SendToServer(new AcknowledgePacket(chatPacket.AckId));
+                    }
+                    
                     break;
 
                     // AcknowledgePacket
