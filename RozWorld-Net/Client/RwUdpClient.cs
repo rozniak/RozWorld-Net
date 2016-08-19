@@ -524,13 +524,11 @@ namespace Oddmatics.RozWorld.Net.Client
                 case PacketType.CHAT_MESSAGE_ID:
                     var chatPacket = new ChatPacket(rxData, senderEP);
 
-                    if (State == ClientState.Connected)
-                    {
-                        if (ChatMessageReceived != null)
-                            ChatMessageReceived(this, new PacketEventArgs(chatPacket));
+                    SendToServer(new AcknowledgePacket(chatPacket.AckId));
 
-                        SendToServer(new AcknowledgePacket(chatPacket.AckId));
-                    }
+                    if (State == ClientState.Connected &&
+                        ChatMessageReceived != null)
+                        ChatMessageReceived(this, new PacketEventArgs(chatPacket));
                     
                     break;
 

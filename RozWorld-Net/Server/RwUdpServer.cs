@@ -272,13 +272,13 @@ namespace Oddmatics.RozWorld.Net.Server
                 case PacketType.CHAT_MESSAGE_ID:
                     var chatPacket = new ChatPacket(rxData, senderEP);
 
+                    // Acknowldege that packet
+                    Send(new AcknowledgePacket(chatPacket.AckId), senderEP);
+
                     if (ConnectedClients.ContainsKey(senderEP) &&
                         ConnectedClients[senderEP].Usernames.Contains(chatPacket.Username.ToLower()) &&
                         ChatMessageReceived != null)
                         ChatMessageReceived(this, new PacketEventArgs(chatPacket));
-
-                    // Acknowldege that packet
-                    Send(new AcknowledgePacket(chatPacket.AckId), senderEP);
 
                     break;
 
