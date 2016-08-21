@@ -257,7 +257,6 @@ namespace Oddmatics.RozWorld.Net.Server
 
             if (SinceLastPacketReceived > RwUdpServer.CLIENT_TIMEOUT_TIME)
             {
-                timer.Stop();
                 timer.Elapsed -= TimeoutTimer_Elapsed; // Detach this event handler
 
                 Alive = false;
