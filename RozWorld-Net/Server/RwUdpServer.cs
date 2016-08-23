@@ -48,6 +48,16 @@ namespace Oddmatics.RozWorld.Net.Server
         public int AmountOfConnections { get { return ConnectedClients.Count; } }
 
         /// <summary>
+        /// Gets the amount of bytes received by this RwUdpServer since the start of this session.
+        /// </summary>
+        public ulong BytesReceived { get; private set; }
+
+        /// <summary>
+        /// Gets the amount of bytes transmitted by this RwUdpServer since the start of this session.
+        /// </summary>
+        public ulong BytesTransmitted { get; private set; }
+
+        /// <summary>
         /// The UdpClient instance for peforming the networking operations.
         /// </summary>
         private UdpClient Client;
@@ -61,6 +71,11 @@ namespace Oddmatics.RozWorld.Net.Server
         /// The IPEndPoint for networking operations.
         /// </summary>
         private IPEndPoint EndPoint;
+
+        /// <summary>
+        /// Gets the DateTime of when this networking session was started.
+        /// </summary>
+        public DateTime SessionStarted { get; private set; }
 
         /// <summary>
         /// Gets the Timer that advances timeout counts for connected clients.
@@ -149,6 +164,7 @@ namespace Oddmatics.RozWorld.Net.Server
             if (!Active)
             {
                 Active = true;
+                SessionStarted = DateTime.UtcNow;
                 Client.BeginReceive(new AsyncCallback(Received), EndPoint);
             }
             else
@@ -220,6 +236,7 @@ namespace Oddmatics.RozWorld.Net.Server
             try
             {
                 rxData = Client.EndReceive(result, ref senderEP);
+                BytesReceived += (ulong)rxData.Length;
             }
             catch (SocketException ex)
             {
@@ -307,7 +324,7 @@ namespace Oddmatics.RozWorld.Net.Server
         /// </summary>
         private void Sent(IAsyncResult result)
         {
-            Client.EndSend(result);
+            BytesTransmitted += (ulong)Client.EndSend(result);
         }
     }
 }
