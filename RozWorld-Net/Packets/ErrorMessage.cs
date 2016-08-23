@@ -53,6 +53,10 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         public const byte HASHTIME_INVALID = 8;
         /// <summary>
+        /// The username is not on the whitelist and the server is currently whitelisted.
+        /// </summary>
+        public const byte NOT_ON_WHITELIST = 9;
+        /// <summary>
         /// The network function has not been fully implemented.
         /// </summary>
         public const byte NOT_IMPLEMENTED = 100;
