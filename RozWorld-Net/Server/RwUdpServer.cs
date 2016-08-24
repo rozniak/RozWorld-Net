@@ -73,6 +73,18 @@ namespace Oddmatics.RozWorld.Net.Server
         private IPEndPoint EndPoint;
 
         /// <summary>
+        /// Gets the SessionInfo about this RwUdpServer.
+        /// </summary>
+        public SessionInfo SessionInfo
+        {
+            get
+            {
+                return new SessionInfo(BytesReceived, BytesTransmitted,
+                    SessionStarted);
+            }
+        }
+
+        /// <summary>
         /// Gets the DateTime of when this networking session was started.
         /// </summary>
         public DateTime SessionStarted { get; private set; }
