@@ -82,7 +82,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
         public ServerInfoRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
-            int currentIndex = 2; // Skip first two bytes for ID
+            int currentIndex = 6; // Skip first six bytes for signature and ID
             ClientImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
             ClientVersionRaw = ByteParse.NextUShort(data, ref currentIndex);
             ServerImplementation = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
@@ -129,6 +129,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             var data = new List<byte>();
 
+            data.AddRange(Special.PACKET_SIGNATURE.GetBytes());
             data.AddRange(Id.GetBytes());
             data.AddRange(ClientImplementation.GetBytesByLength(1, Encoding.UTF8));
             data.AddRange(ClientVersionRaw.GetBytes());

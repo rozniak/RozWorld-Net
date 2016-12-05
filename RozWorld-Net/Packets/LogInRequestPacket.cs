@@ -94,7 +94,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
         public LogInRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
-            int currentIndex = 2; // Skip first two bytes for ID
+            int currentIndex = 6; // Skip first six bytes for signature and ID
             ChatOnly = ByteParse.NextBool(data, ref currentIndex);
             SkinDownloads = ByteParse.NextBool(data, ref currentIndex);
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
@@ -173,6 +173,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             var data = new List<byte>();
 
+            data.AddRange(Special.PACKET_SIGNATURE.GetBytes());
             data.AddRange(Id.GetBytes());
             data.AddRange(ChatOnly.GetBytes());
             data.AddRange(SkinDownloads.GetBytes());

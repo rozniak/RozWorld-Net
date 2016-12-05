@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Oddmatics.Util.IO">
-      <HintPath>..\..\Oddmatics-IO\Oddmatics-IO\bin\Release\Oddmatics.Util.IO.dll</HintPath>
+      <HintPath>..\..\Oddmatics-IO\Oddmatics-IO\bin\Debug\Oddmatics.Util.IO.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -66,6 +66,7 @@
     <Compile Include="Packets\ServerInfoResponsePacket.cs" />
     <Compile Include="Packets\SignUpRequestPacket.cs" />
     <Compile Include="Packets\SignUpResponsePacket.cs" />
+    <Compile Include="Packets\Special.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\ConnectedClient.cs" />
     <Compile Include="Server\Event\ClientDropEventArgs.cs" />

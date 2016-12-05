@@ -61,7 +61,13 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <returns>A byte array containing the data in this PingPacket.</returns>
         public byte[] GetBytes()
         {
-            return Id.GetBytes(); // Only need the ID for pings
+            // Improve this - add tokens for UDP stuff
+            var data = new List<byte>();
+
+            data.AddRange(Special.PACKET_SIGNATURE.GetBytes());
+            data.AddRange(Id.GetBytes());
+
+            return data.ToArray(); // Only need the ID for pings
         }
     }
 }

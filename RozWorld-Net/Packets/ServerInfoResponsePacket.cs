@@ -80,7 +80,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
         public ServerInfoResponsePacket(byte[] data, IPEndPoint senderEndPoint)
         {
-            int currentIndex = 2; // Skip first two bytes for ID
+            int currentIndex = 6; // Skip first six bytes for signature and ID
 
             ClientCompatible = ByteParse.NextBool(data, ref currentIndex);
             MaxPlayers = ByteParse.NextShort(data, ref currentIndex);
@@ -129,6 +129,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             var data = new List<byte>();
 
+            data.AddRange(Special.PACKET_SIGNATURE.GetBytes());
             data.AddRange(Id.GetBytes());
             data.AddRange(ClientCompatible.GetBytes());
             data.AddRange(MaxPlayers.GetBytes());

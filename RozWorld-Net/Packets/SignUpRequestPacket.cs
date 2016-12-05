@@ -66,7 +66,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <param name="senderEndPoint">The IPEndPoint of the sender.</param>
         public SignUpRequestPacket(byte[] data, IPEndPoint senderEndPoint)
         {
-            int currentIndex = 2; // Skip first two bytes for ID
+            int currentIndex = 6; // Skip first six bytes for signature and ID
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
             PasswordHash = new byte[data.Length - currentIndex];
             Array.Copy(data, currentIndex, PasswordHash, 0, data.Length - currentIndex);
@@ -123,6 +123,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         {
             var data = new List<byte>();
 
+            data.AddRange(Special.PACKET_SIGNATURE.GetBytes());
             data.AddRange(Id.GetBytes());
             data.AddRange(Username.GetBytesByLength(1, Encoding.UTF8));
             data.AddRange(PasswordHash);

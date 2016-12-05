@@ -473,6 +473,15 @@ namespace Oddmatics.RozWorld.Net.Client
             }
 
             int currentIndex = 0;
+
+            // Check packet signature first - ensure it is a RozWorld packet
+            uint signatureCheck = ByteParse.NextUInt(rxData, ref currentIndex);
+
+            if (signatureCheck != Special.PACKET_SIGNATURE)
+                return; // Invalid packet
+
+
+            // Validated - handle the packet
             ushort id = ByteParse.NextUShort(rxData, ref currentIndex);
 
             switch (id)
