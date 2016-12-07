@@ -192,7 +192,10 @@ namespace Oddmatics.RozWorld.Net.Server
         public bool DropClient(IPEndPoint clientEP)
         {
             if (ConnectedClients.ContainsKey(clientEP))
+            {
                 ConnectedClients.Remove(clientEP);
+                return true;
+            }
 
             return false;
         }
