@@ -69,8 +69,10 @@ namespace Oddmatics.RozWorld.Net.Server
 
         /// <summary>
         /// The IPEndPoint for networking operations.
+        /// 
+        /// This field is read-only.
         /// </summary>
-        private IPEndPoint EndPoint;
+        private readonly IPEndPoint EndPoint;
 
         /// <summary>
         /// Gets the SessionInfo about this RwUdpServer.
@@ -127,12 +129,19 @@ namespace Oddmatics.RozWorld.Net.Server
         /// <param name="port">The port number to use.</param>
         public RwUdpServer(int port)
         {
+            ConnectedClients = new Dictionary<IPEndPoint, ConnectedClient>();
+
             TimeoutTimer = new Timer(10);
             TimeoutTimer.Enabled = true;
             TimeoutTimer.Start();
-            Client = new UdpClient(port);
-            ConnectedClients = new Dictionary<IPEndPoint, ConnectedClient>();
-            EndPoint = new IPEndPoint(IPAddress.Any, port);
+
+            // Create IPv6 UdpClient
+            Client = new UdpClient();
+            Client.Client = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+            Client.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+            Client.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+            
+            EndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
         }
 
 

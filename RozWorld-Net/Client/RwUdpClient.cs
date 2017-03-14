@@ -158,6 +158,8 @@ namespace Oddmatics.RozWorld.Net.Client
             FreedAckIds = new Queue<ushort>();
             KeyByAck = new Dictionary<ushort, string>();
             WatchedPackets = new Dictionary<string, PacketWatcher>();
+
+
             Random random = new Random();
             bool successfulPort = false;
 
@@ -166,7 +168,14 @@ namespace Oddmatics.RozWorld.Net.Client
                 try
                 {
                     // Choose port number from dynamic range
-                    Client = new UdpClient(random.Next(49152, 65535));
+                    int port = random.Next(49152, 65536);
+
+                    // Create IPv6 UdpClient
+                    Client = new UdpClient();
+                    Client.Client = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+                    Client.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+                    Client.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+
                     successfulPort = true;
                 }
                 catch (SocketException ex)
