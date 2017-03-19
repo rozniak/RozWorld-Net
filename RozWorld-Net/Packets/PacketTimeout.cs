@@ -24,7 +24,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// The time in milliseconds until a resend attempt is made for authentication packets.
         /// </summary>
-        public const ushort RESEND_TIMEOUT_AUTH = 1000;
+        public const ushort RESEND_TIMEOUT_AUTH = 7500;
 
         /// <summary>
         /// The amount of resend attempts to make for chat message packets.
@@ -44,11 +44,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// The time in milliseconds with no network interaction before a keepalive ping should be transmitted.
         /// </summary>
-        public const ushort SEND_TIMEOUT_PING = 2000;
+        public const ushort SEND_TIMEOUT_PING = 15000;
 
         /// <summary>
         /// The time in milliseconds until a server endpoint is deemed unreachable.
         /// </summary>
-        public const ushort TOTAL_TIMEOUT = 15000;
+        public const ushort TOTAL_TIMEOUT = 30000;
     }
 }

@@ -25,7 +25,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the error message ID describing the reason for the sign up failure, if applicable.
         /// </summary>
-        public byte ErrorMessageId { get; private set; }
+        public readonly byte ErrorMessageId;
 
         /// <summary>
         /// Gets the ID of this SignUpResponsePacket.
@@ -50,7 +50,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets whether the sign up attempt was a success.
         /// </summary>
-        public bool Success { get; private set; }
+        public readonly bool Success;
 
         /// <summary>
         /// Gets the time in milliseconds before a resend attempt is made.
@@ -60,7 +60,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <summary>
         /// Gets the username that was registered on the server.
         /// </summary>
-        public string Username { get; private set; }
+        public readonly string Username;
 
 
         /// <summary>

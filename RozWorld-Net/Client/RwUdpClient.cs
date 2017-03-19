@@ -51,6 +51,24 @@ namespace Oddmatics.RozWorld.Net.Client
         private UdpClient Client;
 
         /// <summary>
+        /// The IPacket to be used in the current context.
+        /// </summary>
+        /// <remarks>
+        /// This is to be used during some kind of three-way handshake transaction, such as a sign up request.
+        /// 
+        /// Essentially, the initiation packet is sent to the server, whilst this field is set to the packet that
+        /// will be sent once the server confirms the context.
+        /// 
+        /// For a sign up request:
+        ///     This field is set to the sign up request packet to send
+        ///     Initiation context request packet is sent to server
+        ///     Server responds
+        ///     This field's packet will be sent to the server
+        ///     Server responds with result of sign up transaction
+        /// </remarks>
+        private IPacket ContextualPacket;
+
+        /// <summary>
         /// The IPEndPoint of the server being communicated to currently.
         /// </summary>
         private IPEndPoint EndPoint;
@@ -101,6 +119,11 @@ namespace Oddmatics.RozWorld.Net.Client
         public Timer TimeoutTimer { get; private set; }
 
         /// <summary>
+        /// Gets or sets the token this client has obtained from the remote server
+        /// </summary>
+        private uint Token;
+
+        /// <summary>
         /// The currently watched packets as a Dictionary&lt;string, PacketWatcher&gt; collection.
         /// </summary>
         private Dictionary<string, PacketWatcher> WatchedPackets;
@@ -125,6 +148,11 @@ namespace Oddmatics.RozWorld.Net.Client
         /// Occurs when a server information response has been received.
         /// </summary>
         public event PacketEventHandler InfoResponseReceived;
+
+        /// <summary>
+        /// Occurs when an initiation response has been received.
+        /// </summary>
+        private event PacketEventHandler InitiationResponseReceived;
 
         /// <summary>
         /// Occurs when a log in response has been received.
@@ -245,6 +273,11 @@ namespace Oddmatics.RozWorld.Net.Client
 
             switch (requestType)
             {
+                case "InitRequest":
+                    WatchedPackets[requestType].Timeout -= packetWatcher_Timeout_Initiation;
+                    ConnectionError -= packetWatcher_Timeout_Initiation;
+                    break;
+
                 case "SignUpRequest":
                     WatchedPackets[requestType].Timeout -= packetWatcher_Timeout_SignUp;
                     ConnectionError -= packetWatcher_Timeout_SignUp;
@@ -360,14 +393,23 @@ namespace Oddmatics.RozWorld.Net.Client
         {
             if (State == ClientState.Idle && Active)
             {
-                string key = "SignUpRequest";
+                //string key = "SignUpRequest";
+                string key = "InitRequest";
+
+                // Build sign up packet
                 byte[] passwordHash = new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(password));
-                var packet = new SignUpRequestPacket(username, passwordHash);
-                var packetWatcher = new PacketWatcher(packet, destination, key, this);
+                var signUpPacket = new SignUpRequestPacket(username, passwordHash);
+
+                ContextualPacket = signUpPacket;
+
+                // Build initiation packet
+                var initPacket = new InitiationRequestPacket(SessionContext.SignUp);
+                var packetWatcher = new PacketWatcher(initPacket, destination, key, this);
 
                 State = ClientState.SigningUp;
-                packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_SignUp);
-                ConnectionError += new EventHandler(packetWatcher_Timeout_SignUp);
+                packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_Initiation);
+                ConnectionError += new EventHandler(packetWatcher_Timeout_Initiation);
+                InitiationResponseReceived += new PacketEventHandler(RwUdpClient_InitiationResponseReceived);
                 WatchedPackets.Add(key, packetWatcher);
                 packetWatcher.Start();
 
@@ -375,6 +417,31 @@ namespace Oddmatics.RozWorld.Net.Client
             }
 
             return false;
+        }
+
+        private void RwUdpClient_InitiationResponseReceived(object sender, PacketEventArgs e)
+        {
+            var initPacket = (InitiationResponsePacket)e.Packet;
+
+            if (initPacket.Success)
+            {
+                Token = initPacket.Token;
+
+                // Initiation is for signing up
+                if (ContextualPacket is SignUpRequestPacket)
+                {
+
+                }
+                // Initiation is for logging in
+                else if (ContextualPacket is LogInRequestPacket)
+                {
+
+                }
+            }
+            else
+            {
+                // TODO: Handle error here
+            }
         }
 
         /// <summary>
@@ -402,6 +469,18 @@ namespace Oddmatics.RozWorld.Net.Client
         private void packetWatcher_Timeout_ChatMessage(object sender, EventArgs e)
         {
             IPacket packet = KillReceive(((PacketWatcher)sender).Key);
+
+            if (PacketTimeout != null && sender is PacketWatcher)
+                PacketTimeout(this, new PacketEventArgs(packet));
+        }
+
+        /// <summary>
+        /// [WatchedPackets[InitRequest].Timeout] Initiation request packet timeout.
+        /// </summary>
+        private void packetWatcher_Timeout_Initiation(object sender, EventArgs e)
+        {
+            State = ClientState.Idle;
+            IPacket packet = KillReceive("InitRequest");
 
             if (PacketTimeout != null && sender is PacketWatcher)
                 PacketTimeout(this, new PacketEventArgs(packet));
@@ -495,22 +574,46 @@ namespace Oddmatics.RozWorld.Net.Client
 
             switch (id)
             {
-                    // ServerInfoResponsePacket
-                case PacketType.SERVER_INFO_ID:
-                    if (InfoResponseReceived != null && State == ClientState.Broadcasting)
-                        InfoResponseReceived(this,
-                            new PacketEventArgs(new ServerInfoResponsePacket(rxData, senderEP)));
+                    // AcknowledgePacket
+                case PacketType.ACK_ID:
+                    var ackPacket = new AcknowledgePacket(rxData, EndPoint);
+
+                    if (State == ClientState.Connected &&
+                        senderEP.Equals(EndPoint) &&
+                        KeyByAck.ContainsKey(ackPacket.AckId))
+                    {
+                        KillReceive(KeyByAck[ackPacket.AckId]);
+                        KeyByAck.Remove(ackPacket.AckId);
+                        FreedAckIds.Enqueue(ackPacket.AckId); // Free ack ID again
+                    }
+
                     break;
 
-                    // SignUpResponsePacket
-                case PacketType.SIGN_UP_ID:
-                    if (SignUpResponseReceived != null && State == ClientState.SigningUp &&
-                        senderEP.Equals(WatchedPackets["SignUpRequest"].EndPoint))
+                    // ChatPacket
+                case PacketType.CHAT_MESSAGE_ID:
+                    var chatPacket = new ChatPacket(rxData, senderEP);
+
+                    SendToServer(new AcknowledgePacket(chatPacket.AckId));
+
+                    if (State == ClientState.Connected &&
+                        ChatMessageReceived != null)
+                        ChatMessageReceived(this, new PacketEventArgs(chatPacket));
+
+                    break;
+
+                    // InitiationResponsePacket
+                case PacketType.INITIATION_ID:
+                    if (InitiationResponseReceived != null &&
+                        (State == ClientState.SigningUp || State == ClientState.SigningUp) &&
+                        senderEP.Equals(WatchedPackets["InitRequest"].EndPoint))
                     {
-                        State = ClientState.Idle;
-                        KillReceive("SignUpRequest");
-                        SignUpResponseReceived(this,
-                            new PacketEventArgs(new SignUpResponsePacket(rxData, senderEP)));
+                        KillReceive("InitRequest");
+
+                        var initPacket = new InitiationResponsePacket(rxData, senderEP);
+
+                        // Fire response event to handle the rest of the initiation process
+                        if (InitiationResponseReceived != null)
+                            InitiationResponseReceived(this, new PacketEventArgs(initPacket));
                     }
 
                     break;
@@ -538,29 +641,22 @@ namespace Oddmatics.RozWorld.Net.Client
 
                     break;
 
-                    // ChatPacket
-                case PacketType.CHAT_MESSAGE_ID:
-                    var chatPacket = new ChatPacket(rxData, senderEP);
-
-                    SendToServer(new AcknowledgePacket(chatPacket.AckId));
-
-                    if (State == ClientState.Connected &&
-                        ChatMessageReceived != null)
-                        ChatMessageReceived(this, new PacketEventArgs(chatPacket));
-                    
+                    // ServerInfoResponsePacket
+                case PacketType.SERVER_INFO_ID:
+                    if (InfoResponseReceived != null && State == ClientState.Broadcasting)
+                        InfoResponseReceived(this,
+                            new PacketEventArgs(new ServerInfoResponsePacket(rxData, senderEP)));
                     break;
 
-                    // AcknowledgePacket
-                case PacketType.ACK_ID:
-                    var ackPacket = new AcknowledgePacket(rxData, EndPoint);
-
-                    if (State == ClientState.Connected &&
-                        senderEP.Equals(EndPoint) &&
-                        KeyByAck.ContainsKey(ackPacket.AckId))
+                    // SignUpResponsePacket
+                case PacketType.SIGN_UP_ID:
+                    if (SignUpResponseReceived != null && State == ClientState.SigningUp &&
+                        senderEP.Equals(WatchedPackets["SignUpRequest"].EndPoint))
                     {
-                        KillReceive(KeyByAck[ackPacket.AckId]);
-                        KeyByAck.Remove(ackPacket.AckId);
-                        FreedAckIds.Enqueue(ackPacket.AckId); // Free ack ID again
+                        State = ClientState.Idle;
+                        KillReceive("SignUpRequest");
+                        SignUpResponseReceived(this,
+                            new PacketEventArgs(new SignUpResponsePacket(rxData, senderEP)));
                     }
 
                     break;

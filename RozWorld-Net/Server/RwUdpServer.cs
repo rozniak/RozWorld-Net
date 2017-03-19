@@ -9,6 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using Oddmatics.RozWorld.API.Generic;
 using Oddmatics.RozWorld.Net.Packets;
 using Oddmatics.RozWorld.Net.Packets.Event;
 using Oddmatics.RozWorld.Net.Server.Event;
@@ -75,6 +76,11 @@ namespace Oddmatics.RozWorld.Net.Server
         private readonly IPEndPoint EndPoint;
 
         /// <summary>
+        /// Gets or sets the ILogger this RwUdpServer is using.
+        /// </summary>
+        public ILogger Logger;
+
+        /// <summary>
         /// Gets the SessionInfo about this RwUdpServer.
         /// </summary>
         public SessionInfo SessionInfo
@@ -130,7 +136,9 @@ namespace Oddmatics.RozWorld.Net.Server
         public RwUdpServer(int port)
         {
             ConnectedClients = new Dictionary<IPEndPoint, ConnectedClient>();
+            Logger = new EmptyLogger();
 
+            // Create timer for this server
             TimeoutTimer = new Timer(10);
             TimeoutTimer.Enabled = true;
             TimeoutTimer.Start();

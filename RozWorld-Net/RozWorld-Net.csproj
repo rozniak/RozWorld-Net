@@ -33,6 +33,9 @@
     <DocumentationFile>bin\Release\Oddmatics.RozWorld.Net.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Oddmatics.RozWorld.API">
+      <HintPath>..\..\RozWorld-API\RozWorld-API\bin\Debug\Oddmatics.RozWorld.API.dll</HintPath>
+    </Reference>
     <Reference Include="Oddmatics.Util">
       <HintPath>..\..\Oddmatics-IO\Oddmatics-IO\bin\Release\Oddmatics.Util.dll</HintPath>
     </Reference>
@@ -55,6 +58,9 @@
     <Compile Include="Client\RwUdpClient.cs" />
     <Compile Include="Packets\ErrorMessage.cs" />
     <Compile Include="Packets\IAcknowledgeable.cs" />
+    <Compile Include="Packets\SessionContext.cs" />
+    <Compile Include="Packets\InitiationRequestPacket.cs" />
+    <Compile Include="Packets\InitiationResponsePacket.cs" />
     <Compile Include="Packets\IPacket.cs" />
     <Compile Include="Packets\LogInRequestPacket.cs" />
     <Compile Include="Packets\LogInResponsePacket.cs" />

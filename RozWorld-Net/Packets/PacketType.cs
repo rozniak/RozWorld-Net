@@ -46,6 +46,10 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         public const ushort CONFIRM_DISCONNECT_ID = 101;
         /// <summary>
+        /// The ID for sign up initiation packets.
+        /// </summary>
+        public const ushort INITIATION_ID = 998;
+        /// <summary>
         /// The ID for acknowledgement packets.
         /// </summary>
         public const ushort ACK_ID = 999;
