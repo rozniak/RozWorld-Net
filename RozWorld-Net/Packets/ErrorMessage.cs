@@ -57,6 +57,10 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// </summary>
         public const byte NOT_ON_WHITELIST = 9;
         /// <summary>
+        /// The authentication token provided was not valid.
+        /// </summary>
+        public const byte BAD_TOKEN = 10;
+        /// <summary>
         /// The network function has not been fully implemented.
         /// </summary>
         public const byte NOT_IMPLEMENTED = 100;

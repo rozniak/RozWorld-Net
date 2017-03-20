@@ -18,7 +18,7 @@ namespace Oddmatics.RozWorld.Net.Packets
     /// <summary>
     /// [SERVER --> CLIENT] Represents a sign up response packet.
     /// </summary>
-    public class InitiationResponsePacket : IPacket
+    public class InitiationResponsePacket : ITokenPacket
     {
         /// <summary>
         /// Gets the error message ID describing the reason for the initiation failure, if applicable.
@@ -56,9 +56,9 @@ namespace Oddmatics.RozWorld.Net.Packets
         public ushort TimeUntilResend { get { return 0; } }
 
         /// <summary>
-        /// Gets the token assigned to this response, if the initiation was successful.
+        /// Gets the token leased to authenticate the transaction, if it was accepted.
         /// </summary>
-        public readonly uint Token;
+        public uint Token { get; private set; }
 
 
         /// <summary>

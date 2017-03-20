@@ -58,6 +58,7 @@
     <Compile Include="Client\RwUdpClient.cs" />
     <Compile Include="Packets\ErrorMessage.cs" />
     <Compile Include="Packets\IAcknowledgeable.cs" />
+    <Compile Include="Packets\ITokenPacket.cs" />
     <Compile Include="Packets\SessionContext.cs" />
     <Compile Include="Packets\InitiationRequestPacket.cs" />
     <Compile Include="Packets\InitiationResponsePacket.cs" />

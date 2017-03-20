@@ -419,31 +419,6 @@ namespace Oddmatics.RozWorld.Net.Client
             return false;
         }
 
-        private void RwUdpClient_InitiationResponseReceived(object sender, PacketEventArgs e)
-        {
-            var initPacket = (InitiationResponsePacket)e.Packet;
-
-            if (initPacket.Success)
-            {
-                Token = initPacket.Token;
-
-                // Initiation is for signing up
-                if (ContextualPacket is SignUpRequestPacket)
-                {
-
-                }
-                // Initiation is for logging in
-                else if (ContextualPacket is LogInRequestPacket)
-                {
-
-                }
-            }
-            else
-            {
-                // TODO: Handle error here
-            }
-        }
-
         /// <summary>
         /// Stops networking operations, sending a disconnection packet if necessary beforehand.
         /// </summary>
@@ -672,6 +647,44 @@ namespace Oddmatics.RozWorld.Net.Client
             if (State == ClientState.Connected &&
                 senderEP.Equals(EndPoint))
                 SinceLastPacketReceived = 0;
+        }
+
+        /// <summary>
+        /// [this.InitiationResponseReceived] Initiation response received.
+        /// </summary>
+        private void RwUdpClient_InitiationResponseReceived(object sender, PacketEventArgs e)
+        {
+            var destination = WatchedPackets["InitRequest"].EndPoint;
+            var initPacket = (InitiationResponsePacket)e.Packet;
+
+            KillReceive("InitRequest");
+
+            if (initPacket.Success)
+            {
+                Token = initPacket.Token;
+
+                // Initiation is for signing up
+                if (ContextualPacket is SignUpRequestPacket)
+                {
+                    string key = "SignUpRequest";
+                    var packetWatcher = new PacketWatcher(ContextualPacket, destination, key, this);
+
+                    packetWatcher.Timeout += new EventHandler(packetWatcher_Timeout_SignUp);
+                    ConnectionError += new EventHandler(packetWatcher_Timeout_SignUp);
+
+                    WatchedPackets.Add(key, packetWatcher);
+                    packetWatcher.Start();
+                }
+                // Initiation is for logging in
+                else if (ContextualPacket is LogInRequestPacket)
+                {
+                    // TODO: Code this
+                }
+            }
+            else
+            {
+                // TODO: Handle error here
+            }
         }
 
         /// <summary>

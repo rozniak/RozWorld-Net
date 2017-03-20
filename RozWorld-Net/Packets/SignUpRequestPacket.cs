@@ -21,7 +21,7 @@ namespace Oddmatics.RozWorld.Net.Packets
     /// <summary>
     /// [CLIENT --> SERVER] Represents a sign up request packet.
     /// </summary>
-    public class SignUpRequestPacket : IPacket
+    public class SignUpRequestPacket : ITokenPacket
     {
         /// <summary>
         /// Gets the ID of this SignUpRequestPacket.
@@ -52,6 +52,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the time in milliseconds before a resend attempt is made.
         /// </summary>
         public ushort TimeUntilResend { get { return PacketTimeout.RESEND_TIMEOUT_AUTH; } }
+
+        /// <summary>
+        /// Gets the token used to authenticate this request.
+        /// </summary>
+        public uint Token { get; private set; }
 
         /// <summary>
         /// Gets the username of the sender of this SignUpRequestPacket.
