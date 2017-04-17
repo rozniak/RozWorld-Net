@@ -119,6 +119,11 @@ namespace Oddmatics.RozWorld.Net.Server
         public event PacketEventHandler InfoRequestReceived;
 
         /// <summary>
+        /// Occurs when an initiation request has been received.
+        /// </summary>
+        public event PacketCheckEventHandler InitiationRequestReceived;
+
+        /// <summary>
         /// Occurs when a log in request has been received.
         /// </summary>
         public event PacketEventHandler LogInRequestReceived;
@@ -307,23 +312,21 @@ namespace Oddmatics.RozWorld.Net.Server
             {
                     // ServerInfoRequestPacket
                 case PacketType.SERVER_INFO_ID:
-                    if (InfoRequestReceived != null)
-                        InfoRequestReceived(this,
-                            new PacketEventArgs(new ServerInfoRequestPacket(rxData, senderEP)));
+                    InfoRequestReceived?.Invoke(this,
+                        new PacketEventArgs(new ServerInfoRequestPacket(rxData, senderEP)));
                     break;
 
                     // SignUpRequestPacket
                 case PacketType.SIGN_UP_ID:
-                    if (SignUpRequestReceived != null)
-                        SignUpRequestReceived(this,
-                            new PacketEventArgs(new SignUpRequestPacket(rxData, senderEP)));
+                    SignUpRequestReceived?.Invoke(this,
+                        new PacketEventArgs(new SignUpRequestPacket(rxData, senderEP)));
+
                     break;
 
                     // LogInRequestPacket
                 case PacketType.LOG_IN_ID:
-                    if (LogInRequestReceived != null)
-                        LogInRequestReceived(this,
-                            new PacketEventArgs(new LogInRequestPacket(rxData, senderEP)));
+                    LogInRequestReceived?.Invoke(this,
+                        new PacketEventArgs(new LogInRequestPacket(rxData, senderEP)));
                     break;
 
                     // ChatPacket
@@ -340,11 +343,19 @@ namespace Oddmatics.RozWorld.Net.Server
 
                     break;
 
+                    // AcknowledgePacket
                 case PacketType.ACK_ID:
                     var ackPacket = new AcknowledgePacket(rxData, senderEP);
 
                     if (ConnectedClients.ContainsKey(senderEP))
                         ConnectedClients[senderEP].Acknowledge(ackPacket.AckId);
+
+                    break;
+
+                    // InitiationRequestPacket
+                case PacketType.INITIATION_ID:
+                    InitiationRequestReceived?.Invoke(this,
+                        new PacketCheckEventArgs(new InitiationRequestPacket(rxData, senderEP)));
 
                     break;
 

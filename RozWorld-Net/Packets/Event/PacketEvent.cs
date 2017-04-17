@@ -28,7 +28,7 @@ namespace Oddmatics.RozWorld.Net.Packets.Event
         /// <summary>
         /// The IPacket subject of the event.
         /// </summary>
-        public IPacket Packet { get; private set; }
+        public IPacket Packet { get; protected set; }
 
 
         /// <summary>
