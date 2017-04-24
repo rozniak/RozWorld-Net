@@ -9,6 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using Oddmatics.RozWorld.API.Generic;
 using Oddmatics.Util.IO;
 using System.Collections.Generic;
 using System.Net;
@@ -21,11 +22,6 @@ namespace Oddmatics.RozWorld.Net.Packets
     public class InitiationResponsePacket : ITokenPacket
     {
         /// <summary>
-        /// Gets the error message ID describing the reason for the initiation failure, if applicable.
-        /// </summary>
-        public readonly byte ErrorMessageId;
-
-        /// <summary>
         /// Gets the ID of this InitiationResponsePacket.
         /// </summary>
         public ushort Id { get { return PacketType.INITIATION_ID; } }
@@ -36,6 +32,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public byte MaxSendAttempts { get { return 0; } }
 
         /// <summary>
+        /// The result code of the request.
+        /// </summary>
+        public readonly RwResult ResultCode;
+
+        /// <summary>
         /// Gets the sender of this InitiationResponsePacket.
         /// </summary>
         public SenderIs Sender { get { return SenderIs.Server; } }
@@ -44,11 +45,6 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the sender's IPEndPoint of InitiationResponsePacket.
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
-
-        /// <summary>
-        /// Gets whether the initiation attempt was a success.
-        /// </summary>
-        public bool Success { get { return ErrorMessageId == ErrorMessage.NO_ERROR; } }
 
         /// <summary>
         /// Gets the time in milliseconds before a resend attempt is made.
@@ -69,18 +65,18 @@ namespace Oddmatics.RozWorld.Net.Packets
         public InitiationResponsePacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 6; // Skip first six bytes for signature and ID
-            ErrorMessageId = ByteParse.NextByte(data, ref currentIndex);
+            ResultCode = (RwResult)ByteParse.NextUShort(data, ref currentIndex);
             Token = ByteParse.NextUInt(data, ref currentIndex);
         }
 
         /// <summary>
         /// Initialises a new instance of the InitiationResponsePacket class with specified properties.
         /// </summary>
-        /// <param name="errorId">The error message ID for this attempt.</param>
+        /// <param name="resultCode">The result code for the request.</param>
         /// <param name="token">The token to define this communication context, 0 if this was a failure.</param>
-        public InitiationResponsePacket(byte errorId, uint token)
+        public InitiationResponsePacket(RwResult resultCode, uint token)
         {
-            ErrorMessageId = errorId;
+            ResultCode = resultCode;
             Token = token;
         }
         
@@ -91,7 +87,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <returns>The InitiationResponsePacket this method creates, cast as an object.</returns>
         public object Clone()
         {
-            return new InitiationResponsePacket(ErrorMessageId, Token);
+            return new InitiationResponsePacket(ResultCode, Token);
         }
 
         /// <summary>
@@ -104,7 +100,7 @@ namespace Oddmatics.RozWorld.Net.Packets
 
             data.AddRange(Special.PACKET_SIGNATURE.GetBytes());
             data.AddRange(Id.GetBytes());
-            data.Add(ErrorMessageId);
+            data.AddRange(((ushort)ResultCode).GetBytes());
             data.AddRange(Token.GetBytes());
 
             return data.ToArray();

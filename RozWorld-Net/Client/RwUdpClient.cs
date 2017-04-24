@@ -9,6 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using Oddmatics.RozWorld.API.Generic;
 using Oddmatics.RozWorld.Net.Packets;
 using Oddmatics.RozWorld.Net.Packets.Event;
 using Oddmatics.RozWorld.Net.Server;
@@ -601,7 +602,7 @@ namespace Oddmatics.RozWorld.Net.Client
                         KillReceive("LogInRequest");
                         var logInPacket = new LogInResponsePacket(rxData, senderEP);
 
-                        if (logInPacket.Success)
+                        if (logInPacket.ResultCode == RwResult.Success)
                         {
                             State = ClientState.Connected;
                             EndPoint = senderEP;
@@ -659,7 +660,7 @@ namespace Oddmatics.RozWorld.Net.Client
 
             KillReceive("InitRequest");
 
-            if (initPacket.Success)
+            if (initPacket.ResultCode == RwResult.Success)
             {
                 Token = initPacket.Token;
 

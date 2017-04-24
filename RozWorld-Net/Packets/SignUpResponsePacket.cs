@@ -9,6 +9,7 @@
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
 
+using Oddmatics.RozWorld.API.Generic;
 using Oddmatics.Util.IO;
 using System;
 using System.Collections.Generic;
@@ -23,11 +24,6 @@ namespace Oddmatics.RozWorld.Net.Packets
     public class SignUpResponsePacket : IPacket
     {
         /// <summary>
-        /// Gets the error message ID describing the reason for the sign up failure, if applicable.
-        /// </summary>
-        public readonly byte ErrorMessageId;
-
-        /// <summary>
         /// Gets the ID of this SignUpResponsePacket.
         /// </summary>
         public ushort Id { get { return PacketType.SIGN_UP_ID; } }
@@ -38,6 +34,11 @@ namespace Oddmatics.RozWorld.Net.Packets
         public byte MaxSendAttempts { get { return 0; } }
 
         /// <summary>
+        /// The result code of the request.
+        /// </summary>
+        public readonly RwResult ResultCode;
+
+        /// <summary>
         /// Gets the sender of this SignUpResponsePacket.
         /// </summary>
         public SenderIs Sender { get { return SenderIs.Server; } }
@@ -46,11 +47,6 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// Gets the sender's IPEndPoint of this SignUpResponsePacket.
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
-
-        /// <summary>
-        /// Gets whether the sign up attempt was a success.
-        /// </summary>
-        public readonly bool Success;
 
         /// <summary>
         /// Gets the time in milliseconds before a resend attempt is made.
@@ -71,25 +67,22 @@ namespace Oddmatics.RozWorld.Net.Packets
         public SignUpResponsePacket(byte[] data, IPEndPoint senderEndPoint)
         {
             int currentIndex = 6; // Skip first six bytes for signature and ID
-            Success = ByteParse.NextBool(data, ref currentIndex);
             Username = ByteParse.NextStringByLength(data, ref currentIndex, 1, Encoding.UTF8);
-            ErrorMessageId = ByteParse.NextByte(data, ref currentIndex);
+            ResultCode = (RwResult)ByteParse.NextUShort(data, ref currentIndex);
         }
 
         /// <summary>
         /// Initialises a new instance of the SignUpResponsePacket class with specified properties.
         /// </summary>
-        /// <param name="success">Whether the sign up attempt was a success.</param>
         /// <param name="username">The username that was registered.</param>
-        /// <param name="errorId">The error message ID, if the sign up attempt failed.</param>
-        public SignUpResponsePacket(bool success, string username, byte errorId)
+        /// <param name="resultCode">The result code for the request.</param>
+        public SignUpResponsePacket(string username, RwResult resultCode)
         {
             if (!username.LengthWithinRange(1, 256))
                 throw new ArgumentException("SignUpResponsePacket.New: Invalid username length.");
-
-            ErrorMessageId = errorId;
-            Success = success;
+            
             Username = username;
+            ResultCode = resultCode;
         }
 
 
@@ -99,7 +92,7 @@ namespace Oddmatics.RozWorld.Net.Packets
         /// <returns>The SignUpResponsePacket this method creates, cast as an object.</returns>
         public object Clone()
         {
-            return new SignUpResponsePacket(Success, Username, ErrorMessageId);
+            return new SignUpResponsePacket(Username, ResultCode);
         }
 
         /// <summary>
@@ -112,9 +105,8 @@ namespace Oddmatics.RozWorld.Net.Packets
 
             data.AddRange(Special.PACKET_SIGNATURE.GetBytes());
             data.AddRange(Id.GetBytes());
-            data.AddRange(Success.GetBytes());
             data.AddRange(Username.GetBytesByLength(1, Encoding.UTF8));
-            data.Add(ErrorMessageId);
+            data.AddRange(((ushort)ResultCode).GetBytes());
 
             return data.ToArray();
         }
